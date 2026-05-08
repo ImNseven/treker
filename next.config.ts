@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Standalone output for Docker/Render deployment
+  output: "standalone",
+  // Suppress React hydration warnings in production
+  reactStrictMode: true,
 };
 
 export default nextConfig;

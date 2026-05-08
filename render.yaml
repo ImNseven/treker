@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: treker
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: ALLOWED_EMAIL
+        sync: false
+      - key: OWNER_USER_ID
+        value: owner
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
