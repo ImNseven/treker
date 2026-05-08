@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Category {
+  id           String          @id @default(cuid())
+  userId       String          @default("owner")
+  kind         Kind
+  name         String
+  icon         String
+  color        String
+  sortOrder    Int             @default(0)
+  isArchived   Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+  transactions Transaction[]
+  templates    QuickTemplate[]
+
+  @@index([userId, kind, isArchived])
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  userId     String   @default("owner")
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  kind       Kind
+  amount     Decimal  @db.Decimal(12, 2)
+  note       String?
+  occurredOn DateTime @db.Date
+  createdAt  DateTime @default(now())
+
+  @@index([userId, occurredOn])
+  @@index([categoryId])
+}
+
+model QuickTemplate {
+  id         String   @id @default(cuid())
+  userId     String   @default("owner")
+  kind       Kind
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  amount     Decimal  @db.Decimal(12, 2)
+  label      String
+  sortOrder  Int      @default(0)
+
+  @@index([userId, kind])
+}
+
+model Habit {
+  id         String     @id @default(cuid())
+  userId     String     @default("owner")
+  name       String
+  icon       String
+  color      String
+  sortOrder  Int        @default(0)
+  isArchived Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  logs       HabitLog[]
+
+  @@index([userId, isArchived])
+}
+
+model HabitLog {
+  id      String   @id @default(cuid())
+  userId  String   @default("owner")
+  habitId String
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  day     DateTime @db.Date
+
+  @@unique([habitId, day])
+  @@index([userId, day])
+}
+
+model WorkDay {
+  id          String   @id @default(cuid())
+  userId      String   @default("owner")
+  day         DateTime @db.Date
+  hours       Decimal  @db.Decimal(4, 2)
+  description String?
+
+  @@unique([userId, day])
+  @@index([userId, day])
+}
+
+model SleepEntry {
+  id      String   @id @default(cuid())
+  userId  String   @default("owner")
+  startAt DateTime
+  endAt   DateTime
+
+  @@index([userId, startAt])
+}
+
+model Run {
+  id          String   @id @default(cuid())
+  userId      String   @default("owner")
+  occurredOn  DateTime @db.Date
+  distanceKm  Decimal  @db.Decimal(6, 2)
+  durationSec Int
+  note        String?
+
+  @@index([userId, occurredOn])
+}
+
+enum Kind {
+  income
+  expense
+}
