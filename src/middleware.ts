@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -8,7 +7,10 @@ const PUBLIC_PATHS = [
   "/api/health",
 ];
 
-export async function middleware(req: NextRequest) {
+// Cookie name must match session.ts
+const SESSION_COOKIE = "treker_session";
+
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isPublic =
@@ -16,14 +18,17 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/icons") ||
     pathname === "/manifest.webmanifest" ||
+    pathname === "/sw.js" ||
     pathname === "/favicon.ico";
 
   if (isPublic) return NextResponse.next();
 
-  const userId = await getSession();
-  if (!userId) {
+  // Check for session cookie presence (HMAC verification happens in API routes)
+  const sessionCookie = req.cookies.get(SESSION_COOKIE);
+  if (!sessionCookie?.value) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
+
   return NextResponse.next();
 }
 
