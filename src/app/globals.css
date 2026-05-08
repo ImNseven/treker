@@ -7,9 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -43,78 +42,112 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ====== Sunset Warm — Light ====== */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* shadcn semantic tokens → Sunset Warm */
+  --background:          #FAF6F0;
+  --foreground:          #1c1917;
+  --card:                #FFFFFF;
+  --card-foreground:     #1c1917;
+  --popover:             #FFFFFF;
+  --popover-foreground:  #1c1917;
+  --primary:             #f97316;
+  --primary-foreground:  #ffffff;
+  --secondary:           #f5f0eb;
+  --secondary-foreground:#1c1917;
+  --muted:               #f5f0eb;
+  --muted-foreground:    #a8a29e;
+  --accent:              #f97316;
+  --accent-foreground:   #ffffff;
+  --destructive:         #be123c;
+  --border:              #FAEEE1;
+  --input:               #FAEEE1;
+  --ring:                #f97316;
+  --radius:              0.75rem;
+
+  /* Treker custom tokens */
+  --treker-bg:           #FAF6F0;
+  --treker-card:         #FFFFFF;
+  --treker-text:         #1c1917;
+  --treker-text-muted:   #a8a29e;
+  --treker-border:       #FAEEE1;
+  --treker-accent:       #f97316;
+  --treker-accent-2:     #ec4899;
+  --treker-income:       #ea580c;
+  --treker-expense:      #be123c;
+  --treker-ring:         #f97316;
+  --treker-radius-card:  16px;
+  --treker-radius-btn:   8px;
+  --treker-radius-input: 12px;
+  --treker-shadow-card:  0 2px 8px rgba(0,0,0,.06), 0 0 0 1px #FAEEE1;
+
+  /* Chart colors */
+  --chart-1: #f97316;
+  --chart-2: #ec4899;
+  --chart-3: #ea580c;
+  --chart-4: #be123c;
+  --chart-5: #a8a29e;
+
+  /* Sidebar */
+  --sidebar:             #FAF6F0;
+  --sidebar-foreground:  #1c1917;
+  --sidebar-primary:     #f97316;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:      #f5f0eb;
+  --sidebar-accent-foreground:  #1c1917;
+  --sidebar-border:      #FAEEE1;
+  --sidebar-ring:        #f97316;
 }
 
+/* ====== Sunset Warm — Dark ====== */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background:          #1c1917;
+  --foreground:          #fafaf9;
+  --card:                #292524;
+  --card-foreground:     #fafaf9;
+  --popover:             #292524;
+  --popover-foreground:  #fafaf9;
+  --primary:             #fb923c;
+  --primary-foreground:  #1c1917;
+  --secondary:           #3f3f3a;
+  --secondary-foreground:#fafaf9;
+  --muted:               #3f3f3a;
+  --muted-foreground:    #a8a29e;
+  --accent:              #fb923c;
+  --accent-foreground:   #1c1917;
+  --destructive:         #fb7185;
+  --border:              #3f3f3a;
+  --input:               #3f3f3a;
+  --ring:                #fb923c;
+
+  --treker-bg:           #1c1917;
+  --treker-card:         #292524;
+  --treker-text:         #fafaf9;
+  --treker-text-muted:   #a8a29e;
+  --treker-border:       #3f3f3a;
+  --treker-accent:       #fb923c;
+  --treker-accent-2:     #f472b6;
+  --treker-income:       #fb923c;
+  --treker-expense:      #fb7185;
+  --treker-ring:         #fb923c;
+  --treker-shadow-card:  0 2px 8px rgba(0,0,0,.3), 0 0 0 1px #3f3f3a;
+
+  --chart-1: #fb923c;
+  --chart-2: #f472b6;
+  --chart-3: #fb923c;
+  --chart-4: #fb7185;
+  --chart-5: #a8a29e;
+
+  --sidebar:             #1c1917;
+  --sidebar-foreground:  #fafaf9;
+  --sidebar-primary:     #fb923c;
+  --sidebar-primary-foreground: #1c1917;
+  --sidebar-accent:      #292524;
+  --sidebar-accent-foreground:  #fafaf9;
+  --sidebar-border:      #3f3f3a;
+  --sidebar-ring:        #fb923c;
 }
 
 @layer base {
@@ -123,8 +156,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  html {
-    @apply font-sans;
+  .tnum {
+    font-feature-settings: 'tnum';
   }
 }
