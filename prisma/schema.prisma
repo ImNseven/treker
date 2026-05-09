@@ -1,5 +1,9 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  // Run query engine in a separate subprocess so a native crash doesn't kill
+  // the Node.js dev server. Slightly slower IPC, dramatically more stable on
+  // Windows + Node 22.
+  engineType = "binary"
 }
 
 datasource db {

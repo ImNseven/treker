@@ -35,7 +35,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" suppressHydrationWarning className={inter.variable}>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
