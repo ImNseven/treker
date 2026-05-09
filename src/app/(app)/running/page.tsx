@@ -37,11 +37,16 @@ export default function RunningPage() {
   const apiKey = `/api/running?year=${year}&month=${month}`;
   const { data: runs = [] } = useSWR<Run[]>(apiKey, fetcher);
 
+  // Separate fetch for the last-10-days chart so it spans month boundaries
+  const CHART_DAYS = 10;
+  const chartKey = `/api/running?days=${CHART_DAYS}`;
+  const { data: chartRuns = [] } = useSWR<Run[]>(chartKey, fetcher);
+
   const [modalOpen,  setModalOpen]  = useState(false);
   const [editRun,    setEditRun]    = useState<Run | null>(null);
   const [deleteId,   setDeleteId]   = useState<string | null>(null);
 
-  // Stats
+  // Stats — based on the currently displayed month
   const stats = useMemo(() => {
     if (!runs.length) return { totalKm: 0, totalSec: 0, count: 0, avgPace: null };
     const totalKm  = runs.reduce((s, r) => s + Number(r.distanceKm), 0);
@@ -50,17 +55,30 @@ export default function RunningPage() {
     return { totalKm, totalSec, count: runs.length, avgPace };
   }, [runs]);
 
-  // Chart: distance per day
+  // Chart — always last 10 days, including empty days so the bars stay aligned
   const chartData = useMemo(() => {
     const map = new Map<string, number>();
-    for (const r of runs) {
+    for (const r of chartRuns) {
       const key = r.occurredOn.slice(0, 10);
       map.set(key, (map.get(key) ?? 0) + Number(r.distanceKm));
     }
-    return Array.from(map.entries())
-      .map(([date, km]) => ({ date: date.slice(5), km: +km.toFixed(2) }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }, [runs]);
+    const result: { date: string; label: string; km: number; hasRun: boolean }[] = [];
+    const now = new Date();
+    for (let i = CHART_DAYS - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const key = toDateStr(d);
+      const km = map.get(key) ?? 0;
+      result.push({
+        date: key,
+        label: `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`,
+        km: +km.toFixed(2),
+        hasRun: km > 0,
+      });
+    }
+    return result;
+  }, [chartRuns]);
+
+  const chartMaxKm = Math.max(1, ...chartData.map((c) => c.km));
 
   function prevMonth() {
     if (month === 1) { setMonth(12); setYear(y => y - 1); }
@@ -108,34 +126,72 @@ export default function RunningPage() {
         </div>
       </div>
 
-      {/* Bar chart */}
-      {chartData.length > 0 && (
-        <div className="bg-[var(--treker-card)] rounded-xl p-4 border border-[var(--treker-border)] mb-5">
-          <p className="text-xs text-[var(--treker-text-muted)] mb-3">км по дням</p>
-          <ResponsiveContainer width="100%" height={120}>
-            <BarChart data={chartData} barSize={12}>
-              <XAxis dataKey="date" tick={{ fontSize: 9, fill: "var(--treker-text-muted)" }} axisLine={false} tickLine={false} />
-              <YAxis hide />
-              <Tooltip
-                formatter={(v: number) => [`${v} км`, "Дистанция"]}
-                contentStyle={{ background: "var(--treker-card)", border: "1px solid var(--treker-border)", borderRadius: 8, fontSize: 12 }}
-                cursor={{ fill: "var(--treker-border)" }}
-              />
-              <Bar dataKey="km" radius={[4, 4, 0, 0]}>
-                {chartData.map((_, i) => (
-                  <Cell key={i} fill="url(#runGradient)" />
-                ))}
-              </Bar>
-              <defs>
-                <linearGradient id="runGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f97316" />
-                  <stop offset="100%" stopColor="#ec4899" />
-                </linearGradient>
-              </defs>
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Bar chart — last 10 days */}
+      <div className="bg-[var(--treker-card)] rounded-xl p-4 border border-[var(--treker-border)] mb-5 shadow-[var(--treker-shadow-card)]">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-[var(--treker-text-muted)]">Километры — последние 10 дней</p>
+          <p className="text-xs text-[var(--treker-text-muted)] tnum">
+            {chartData.reduce((s, c) => s + c.km, 0).toFixed(1)} км
+          </p>
         </div>
-      )}
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart
+            data={chartData}
+            barCategoryGap={0}
+            margin={{ top: 14, right: 0, left: 0, bottom: 4 }}
+          >
+            <YAxis
+              width={32}
+              domain={[0, Math.ceil(chartMaxKm * 1.1)]}
+              tick={{ fontSize: 10, fill: "var(--treker-text-muted)" }}
+              axisLine={false}
+              tickLine={false}
+              label={{
+                value: "км",
+                angle: 0,
+                position: "insideTopLeft",
+                offset: -10,
+                style: { fontSize: 9, fill: "var(--treker-text-muted)" },
+              }}
+            />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 10, fill: "var(--treker-text-muted)" }}
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+            />
+            <Tooltip
+              formatter={(v: number) => [v > 0 ? `${v} км` : "—", "Дистанция"]}
+              contentStyle={{
+                background: "var(--treker-card)",
+                border: "1px solid var(--treker-border)",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
+              cursor={{ fill: "var(--treker-border)", opacity: 0.4 }}
+            />
+            {/* Each day always gets a full-height pale slot (background); the
+                run distance is drawn on top of it. Empty days show only the slot. */}
+            <Bar
+              dataKey="km"
+              radius={[3, 3, 0, 0]}
+              background={{ fill: "var(--treker-border)", fillOpacity: 0.35, radius: 3 }}
+              isAnimationActive={false}
+            >
+              {chartData.map((c, i) => (
+                <Cell key={i} fill={c.hasRun ? "url(#runGradient)" : "transparent"} />
+              ))}
+            </Bar>
+            <defs>
+              <linearGradient id="runGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f97316" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+            </defs>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* Add button */}
       <div className="flex justify-end mb-4">

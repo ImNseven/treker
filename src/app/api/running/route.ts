@@ -4,7 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-// GET /api/running?year=2026&month=5  (or no params → last 50 entries)
+// GET /api/running                    last 50 entries
+//  ?year=2026&month=5                  all runs in that calendar month
+//  ?days=10                            runs from the last N days (incl. today)
 export async function GET(req: NextRequest) {
   const userId = await getSession();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -12,9 +14,11 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const year  = searchParams.get("year");
   const month = searchParams.get("month");
+  const days  = searchParams.get("days");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let where: any = { userId };
+  let take: number | undefined = 50;
 
   if (year && month) {
     const y = parseInt(year);
@@ -22,12 +26,19 @@ export async function GET(req: NextRequest) {
     const from = new Date(y, m - 1, 1);
     const to   = new Date(y, m, 0, 23, 59, 59, 999);
     where = { userId, occurredOn: { gte: from, lte: to } };
+    take = undefined;
+  } else if (days) {
+    const n = Math.max(1, Math.min(365, parseInt(days)));
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (n - 1));
+    where = { userId, occurredOn: { gte: from } };
+    take = undefined;
   }
 
   const runs = await db.run.findMany({
     where,
     orderBy: { occurredOn: "desc" },
-    take: year && month ? undefined : 50,
+    take,
   });
 
   return NextResponse.json(runs);
