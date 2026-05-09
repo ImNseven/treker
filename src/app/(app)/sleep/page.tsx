@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
@@ -98,14 +98,14 @@ export default function SleepPage() {
       {/* Stats header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-xs text-[--treker-text-muted] font-medium">Среднее (7 записей)</p>
-          <p className="text-2xl font-bold text-[--treker-text] tnum">
+          <p className="text-xs text-[var(--treker-text-muted)] font-medium">Среднее (7 записей)</p>
+          <p className="text-2xl font-bold text-[var(--treker-text)] tnum">
             {avgDuration > 0 ? formatSleepDuration(avgDuration) : "—"}
           </p>
         </div>
         <Button
           onClick={() => { setEditEntry(null); setModalOpen(true); }}
-          className="bg-[--treker-accent] hover:bg-[--treker-accent]/90 text-white gap-1.5"
+          className="bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white gap-1.5"
           size="sm"
         >
           <Plus size={16} />
@@ -116,21 +116,21 @@ export default function SleepPage() {
       {/* Day rows */}
       <div className="space-y-4">
         {dayRows.length === 0 && (
-          <p className="text-[--treker-text-muted] text-sm text-center py-10">
+          <p className="text-[var(--treker-text-muted)] text-sm text-center py-10">
             Нет записей. Добавьте первую!
           </p>
         )}
 
         {dayRows.map((row) => (
-          <div key={row.dayKey} className="bg-[--treker-card] rounded-xl p-4 border border-[--treker-border]">
+          <div key={row.dayKey} className="bg-[var(--treker-card)] rounded-xl p-4 border border-[var(--treker-border)]">
             {/* Day header */}
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-[--treker-text]">
+              <span className="text-sm font-medium text-[var(--treker-text)]">
                 {new Date(row.dayKey + "T12:00:00").toLocaleDateString("ru-RU", {
                   weekday: "short", day: "numeric", month: "short",
                 })}
               </span>
-              <span className="text-xs text-[--treker-text-muted] tnum">
+              <span className="text-xs text-[var(--treker-text-muted)] tnum">
                 {row.totalMinutes > 0 ? formatSleepDuration(row.totalMinutes) : ""}
               </span>
             </div>
@@ -149,17 +149,17 @@ export default function SleepPage() {
               return (
                 <div
                   key={entry.id}
-                  className="flex items-center justify-between text-xs text-[--treker-text-muted] mt-1.5"
+                  className="flex items-center justify-between text-xs text-[var(--treker-text-muted)] mt-1.5"
                 >
                   <span className="tnum">
                     {toLocalTimeStr(startAt)} — {toLocalTimeStr(endAt)}
                     {crossesMidnight && <span className="ml-1 opacity-60">(+1д)</span>}
                   </span>
                   <div className="flex items-center gap-3">
-                    <span className="tnum text-[--treker-text]">{formatSleepDuration(totalMinutes)}</span>
+                    <span className="tnum text-[var(--treker-text)]">{formatSleepDuration(totalMinutes)}</span>
                     <button
                       onClick={() => { setEditEntry(entry); setModalOpen(true); }}
-                      className="hover:text-[--treker-text] transition-colors"
+                      className="hover:text-[var(--treker-text)] transition-colors"
                     >
                       Изм.
                     </button>
@@ -191,7 +191,7 @@ export default function SleepPage() {
           <DialogHeader>
             <DialogTitle>Удалить запись?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-[--treker-text-muted] mt-1">Это действие нельзя отменить.</p>
+          <p className="text-sm text-[var(--treker-text-muted)] mt-1">Это действие нельзя отменить.</p>
           <div className="flex gap-2 mt-4">
             <Button variant="outline" className="flex-1" onClick={() => setDeleteId(null)}>
               Отмена
@@ -328,9 +328,9 @@ function SleepModal({
 
           {/* Duration preview */}
           {valid ? (
-            <p className="text-sm text-[--treker-text-muted] text-center">
+            <p className="text-sm text-[var(--treker-text-muted)] text-center">
               Длительность:{" "}
-              <span className="font-semibold text-[--treker-text] tnum">
+              <span className="font-semibold text-[var(--treker-text)] tnum">
                 {formatSleepDuration(durationMin)}
               </span>
             </p>
@@ -346,7 +346,7 @@ function SleepModal({
           <Button
             onClick={handleSave}
             disabled={saving || !valid}
-            className="w-full bg-[--treker-accent] hover:bg-[--treker-accent]/90 text-white"
+            className="w-full bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white"
           >
             {saving ? "Сохраняем…" : entry ? "Сохранить" : "Добавить"}
           </Button>

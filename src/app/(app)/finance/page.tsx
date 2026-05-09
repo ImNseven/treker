@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useCallback } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
 import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -107,45 +107,45 @@ export default function FinancePage() {
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
       {/* Summary */}
-      <div className="bg-[--treker-card] rounded-[--treker-radius-card] p-4 shadow-[--treker-shadow-card] mb-4">
+      <div className="bg-[var(--treker-card)] rounded-[var(--treker-radius-card)] p-4 shadow-[var(--treker-shadow-card)] mb-4">
         <div className="flex items-center justify-between mb-3">
-          <button onClick={prevMonth} className="p-1 rounded-md hover:bg-[--treker-border] transition-colors">
+          <button onClick={prevMonth} className="p-1 rounded-md hover:bg-[var(--treker-border)] transition-colors">
             <ChevronLeft size={16} />
           </button>
           <span className="font-semibold text-sm capitalize">{monthLabel}</span>
-          <button onClick={nextMonth} className="p-1 rounded-md hover:bg-[--treker-border] transition-colors">
+          <button onClick={nextMonth} className="p-1 rounded-md hover:bg-[var(--treker-border)] transition-colors">
             <ChevronRight size={16} />
           </button>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <p className="text-xs text-[--treker-text-muted] mb-0.5">Доходы</p>
-            <p className="text-lg font-bold tnum text-[--treker-income]">+{formatAmount(income)}</p>
+            <p className="text-xs text-[var(--treker-text-muted)] mb-0.5">Доходы</p>
+            <p className="text-lg font-bold tnum text-[var(--treker-income)]">+{formatAmount(income)}</p>
           </div>
           <div>
-            <p className="text-xs text-[--treker-text-muted] mb-0.5">Расходы</p>
-            <p className="text-lg font-bold tnum text-[--treker-expense]">−{formatAmount(expense)}</p>
+            <p className="text-xs text-[var(--treker-text-muted)] mb-0.5">Расходы</p>
+            <p className="text-lg font-bold tnum text-[var(--treker-expense)]">−{formatAmount(expense)}</p>
           </div>
           <div>
-            <p className="text-xs text-[--treker-text-muted] mb-0.5">Баланс</p>
-            <p className={cn("text-lg font-bold tnum", balance >= 0 ? "text-[--treker-income]" : "text-[--treker-expense]")}>
+            <p className="text-xs text-[var(--treker-text-muted)] mb-0.5">Баланс</p>
+            <p className={cn("text-lg font-bold tnum", balance >= 0 ? "text-[var(--treker-income)]" : "text-[var(--treker-expense)]")}>
               {balance >= 0 ? "+" : ""}{formatAmount(balance)}
             </p>
           </div>
         </div>
-        <p className="text-xs text-[--treker-text-muted] mt-1 text-right">BYN</p>
+        <p className="text-xs text-[var(--treker-text-muted)] mt-1 text-right">BYN</p>
       </div>
 
       {/* Quick templates */}
       {templates.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs text-[--treker-text-muted] mb-2">Быстрый ввод</p>
+          <p className="text-xs text-[var(--treker-text-muted)] mb-2">Быстрый ввод</p>
           <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             {templates.map((t) => (
               <button
                 key={t.id}
                 onClick={() => applyTemplate(t)}
-                className="shrink-0 px-3 py-1.5 rounded-full border border-[--treker-border] text-sm whitespace-nowrap hover:bg-[--treker-border] transition-colors"
+                className="shrink-0 px-3 py-1.5 rounded-full border border-[var(--treker-border)] text-sm whitespace-nowrap hover:bg-[var(--treker-border)] transition-colors"
               >
                 {t.label}
               </button>
@@ -156,9 +156,9 @@ export default function FinancePage() {
 
       {/* Undo toast */}
       {undoTimer && (
-        <div className="mb-4 flex items-center justify-between bg-[--treker-card] border border-[--treker-border] rounded-lg px-4 py-2 shadow-[--treker-shadow-card]">
+        <div className="mb-4 flex items-center justify-between bg-[var(--treker-card)] border border-[var(--treker-border)] rounded-lg px-4 py-2 shadow-[var(--treker-shadow-card)]">
           <span className="text-sm">Транзакция добавлена</span>
-          <button onClick={undoTemplate} className="text-sm font-medium text-[--treker-accent] ml-4">Отменить</button>
+          <button onClick={undoTemplate} className="text-sm font-medium text-[var(--treker-accent)] ml-4">Отменить</button>
         </div>
       )}
 
@@ -174,22 +174,22 @@ export default function FinancePage() {
       {/* Transaction list */}
       <div className="space-y-4">
         {filtered.length === 0 && (
-          <p className="text-center text-[--treker-text-muted] text-sm py-8">Нет транзакций</p>
+          <p className="text-center text-[var(--treker-text-muted)] text-sm py-8">Нет транзакций</p>
         )}
         {Array.from(grouped.entries()).map(([dateKey, txs]) => (
           <div key={dateKey}>
-            <p className="text-xs text-[--treker-text-muted] font-medium mb-2">
+            <p className="text-xs text-[var(--treker-text-muted)] font-medium mb-2">
               {formatDate(dateKey)}
             </p>
-            <div className="bg-[--treker-card] rounded-[--treker-radius-card] shadow-[--treker-shadow-card] divide-y divide-[--treker-border]">
+            <div className="bg-[var(--treker-card)] rounded-[var(--treker-radius-card)] shadow-[var(--treker-shadow-card)] divide-y divide-[var(--treker-border)]">
               {txs.map((tx) => (
                 <div key={tx.id} className="flex items-center gap-3 px-4 py-3">
                   <div
                     className={cn(
                       "w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 text-sm font-bold",
                       tx.kind === "income"
-                        ? "bg-[--treker-income]"
-                        : "bg-[--treker-expense]"
+                        ? "bg-[var(--treker-income)]"
+                        : "bg-[var(--treker-expense)]"
                     )}
                     aria-label={tx.kind === "income" ? "Доход" : "Расход"}
                   >
@@ -197,14 +197,14 @@ export default function FinancePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{tx.category.name}</p>
-                    {tx.note && <p className="text-xs text-[--treker-text-muted] truncate">{tx.note}</p>}
+                    {tx.note && <p className="text-xs text-[var(--treker-text-muted)] truncate">{tx.note}</p>}
                   </div>
-                  <p className={cn("font-semibold tnum text-sm shrink-0", tx.kind === "income" ? "text-[--treker-income]" : "text-[--treker-expense]")}>
+                  <p className={cn("font-semibold tnum text-sm shrink-0", tx.kind === "income" ? "text-[var(--treker-income)]" : "text-[var(--treker-expense)]")}>
                     {tx.kind === "income" ? "+" : "−"}{formatAmount(tx.amount)}
                   </p>
                   <button
                     onClick={() => { setEditTx(tx); setModalOpen(true); }}
-                    className="text-[--treker-text-muted] hover:text-[--treker-text] p-1"
+                    className="text-[var(--treker-text-muted)] hover:text-[var(--treker-text)] p-1"
                   >
                     <MoreHorizontal size={16} />
                   </button>
@@ -218,7 +218,7 @@ export default function FinancePage() {
       {/* FAB */}
       <button
         onClick={() => { setEditTx(null); setModalOpen(true); }}
-        className="fixed bottom-20 right-4 md:bottom-8 md:right-8 w-14 h-14 rounded-full bg-[--treker-accent] text-white shadow-lg flex items-center justify-center z-40 hover:opacity-90 transition-opacity"
+        className="fixed bottom-20 right-4 md:bottom-8 md:right-8 w-14 h-14 rounded-full bg-[var(--treker-accent)] text-white shadow-lg flex items-center justify-center z-40 hover:opacity-90 transition-opacity"
         aria-label="Добавить транзакцию"
       >
         <Plus size={24} />
@@ -307,12 +307,12 @@ function TxModal({
                   className={cn(
                     "flex-1 py-2.5 rounded-lg text-sm font-medium border-2 outline-none",
                     "transition-[transform,box-shadow,background-color,color,border-color] duration-150 ease-out",
-                    "active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[--treker-accent]/40",
+                    "active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[var(--treker-accent)]/40",
                     active
                       ? k === "income"
-                        ? "bg-[--treker-income] text-white border-[--treker-income] shadow-md scale-[1.03]"
-                        : "bg-[--treker-expense] text-white border-[--treker-expense] shadow-md scale-[1.03]"
-                      : "border-[--treker-border] text-[--treker-text-muted] hover:border-[--treker-text-muted]/60 hover:bg-[--treker-border]/40 hover:text-[--treker-text]"
+                        ? "bg-[var(--treker-income)] text-white border-[var(--treker-income)] shadow-md scale-[1.03]"
+                        : "bg-[var(--treker-expense)] text-white border-[var(--treker-expense)] shadow-md scale-[1.03]"
+                      : "border-[var(--treker-border)] text-[var(--treker-text-muted)] hover:border-[var(--treker-text-muted)]/60 hover:bg-[var(--treker-border)]/40 hover:text-[var(--treker-text)]"
                   )}
                 >
                   {k === "income" ? "Доход" : "Расход"}
@@ -378,13 +378,13 @@ function TxModal({
             />
           </div>
 
-          <div className="flex gap-2 pt-3 border-t border-[--treker-border] mt-2">
+          <div className="flex gap-2 pt-3 border-t border-[var(--treker-border)] mt-2">
             {tx && (
               <button
                 type="button"
                 onClick={onDelete}
                 aria-label="Удалить"
-                className="p-2 rounded-lg border-2 border-[--treker-border] text-[--treker-expense] transition-all hover:bg-[--treker-expense]/10 hover:border-[--treker-expense]/40 active:scale-95"
+                className="p-2 rounded-lg border-2 border-[var(--treker-border)] text-[var(--treker-expense)] transition-all hover:bg-[var(--treker-expense)]/10 hover:border-[var(--treker-expense)]/40 active:scale-95"
               >
                 <Trash2 size={18} />
               </button>
@@ -392,7 +392,7 @@ function TxModal({
             <Button
               onClick={handleSave}
               disabled={saving || !categoryId || !amount}
-              className="flex-1 h-10 bg-[--treker-accent] text-white border-2 border-[--treker-accent] shadow-md transition-all hover:bg-[--treker-accent]/90 hover:shadow-lg active:scale-[0.98] disabled:shadow-none disabled:opacity-60"
+              className="flex-1 h-10 bg-[var(--treker-accent)] text-white border-2 border-[var(--treker-accent)] shadow-md transition-all hover:bg-[var(--treker-accent)]/90 hover:shadow-lg active:scale-[0.98] disabled:shadow-none disabled:opacity-60"
             >
               {saving ? "Сохраняем…" : tx ? "Сохранить" : "Добавить"}
             </Button>

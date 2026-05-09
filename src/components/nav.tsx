@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -33,8 +33,8 @@ export function Nav({ variant }: { variant: "sidebar" | "bottom" }) {
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
               pathname === href
-                ? "bg-[--treker-accent]/10 text-[--treker-accent]"
-                : "text-[--treker-text-muted] hover:text-[--treker-text] hover:bg-[--treker-border]"
+                ? "bg-[var(--treker-accent)]/10 text-[var(--treker-accent)]"
+                : "text-[var(--treker-text-muted)] hover:text-[var(--treker-text)] hover:bg-[var(--treker-border)]"
             )}
           >
             <Icon size={18} />
@@ -54,8 +54,8 @@ export function Nav({ variant }: { variant: "sidebar" | "bottom" }) {
           className={cn(
             "flex flex-col items-center gap-0.5 text-[10px] px-2 py-1",
             pathname === href
-              ? "text-[--treker-accent]"
-              : "text-[--treker-text-muted]"
+              ? "text-[var(--treker-accent)]"
+              : "text-[var(--treker-text-muted)]"
           )}
         >
           <Icon size={22} />

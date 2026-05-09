@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
@@ -32,7 +32,7 @@ function getFirstWeekDay(year: number, month: number) {
 
 // Color coding based on hours
 function hoursColor(h: number): string {
-  if (h >= 8)  return "bg-[--treker-accent] text-white";
+  if (h >= 8)  return "bg-[var(--treker-accent)] text-white";
   if (h >= 6)  return "bg-orange-400/80 text-white";
   if (h >= 4)  return "bg-orange-300/70 text-orange-900 dark:text-orange-100";
   return "bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300";
@@ -101,33 +101,33 @@ export default function WorkPage() {
     <div className="p-4 md:p-6 max-w-xl mx-auto">
       {/* Month switcher */}
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-[--treker-card] border border-[--treker-border] flex items-center justify-center text-[--treker-text-muted] hover:text-[--treker-text]">‹</button>
-        <span className="flex-1 text-center text-sm font-medium text-[--treker-text] capitalize">{monthLabel}</span>
-        <button onClick={nextMonth} className="w-7 h-7 rounded-full bg-[--treker-card] border border-[--treker-border] flex items-center justify-center text-[--treker-text-muted] hover:text-[--treker-text]">›</button>
+        <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-[var(--treker-card)] border border-[var(--treker-border)] flex items-center justify-center text-[var(--treker-text-muted)] hover:text-[var(--treker-text)]">‹</button>
+        <span className="flex-1 text-center text-sm font-medium text-[var(--treker-text)] capitalize">{monthLabel}</span>
+        <button onClick={nextMonth} className="w-7 h-7 rounded-full bg-[var(--treker-card)] border border-[var(--treker-border)] flex items-center justify-center text-[var(--treker-text-muted)] hover:text-[var(--treker-text)]">›</button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="bg-[--treker-card] rounded-xl p-3 border border-[--treker-border] text-center">
-          <p className="text-xs text-[--treker-text-muted]">Дней</p>
-          <p className="text-xl font-bold text-[--treker-text] tnum">{stats.days}</p>
+        <div className="bg-[var(--treker-card)] rounded-xl p-3 border border-[var(--treker-border)] text-center">
+          <p className="text-xs text-[var(--treker-text-muted)]">Дней</p>
+          <p className="text-xl font-bold text-[var(--treker-text)] tnum">{stats.days}</p>
         </div>
-        <div className="bg-[--treker-card] rounded-xl p-3 border border-[--treker-border] text-center">
-          <p className="text-xs text-[--treker-text-muted]">Всего часов</p>
-          <p className="text-xl font-bold text-[--treker-text] tnum">{stats.total.toFixed(1)}</p>
+        <div className="bg-[var(--treker-card)] rounded-xl p-3 border border-[var(--treker-border)] text-center">
+          <p className="text-xs text-[var(--treker-text-muted)]">Всего часов</p>
+          <p className="text-xl font-bold text-[var(--treker-text)] tnum">{stats.total.toFixed(1)}</p>
         </div>
-        <div className="bg-[--treker-card] rounded-xl p-3 border border-[--treker-border] text-center">
-          <p className="text-xs text-[--treker-text-muted]">Среднее</p>
-          <p className="text-xl font-bold text-[--treker-text] tnum">{stats.avg.toFixed(1)} ч</p>
+        <div className="bg-[var(--treker-card)] rounded-xl p-3 border border-[var(--treker-border)] text-center">
+          <p className="text-xs text-[var(--treker-text-muted)]">Среднее</p>
+          <p className="text-xl font-bold text-[var(--treker-text)] tnum">{stats.avg.toFixed(1)} ч</p>
         </div>
       </div>
 
       {/* Calendar grid */}
-      <div className="bg-[--treker-card] rounded-xl border border-[--treker-border] p-4">
+      <div className="bg-[var(--treker-card)] rounded-xl border border-[var(--treker-border)] p-4">
         {/* Week day headers */}
         <div className="grid grid-cols-7 mb-1">
           {WEEK_DAYS.map((d) => (
-            <div key={d} className="text-center text-[10px] text-[--treker-text-muted] font-medium pb-1">{d}</div>
+            <div key={d} className="text-center text-[10px] text-[var(--treker-text-muted)] font-medium pb-1">{d}</div>
           ))}
         </div>
 
@@ -145,12 +145,12 @@ export default function WorkPage() {
                 key={cell.key}
                 onClick={() => handleCellClick(cell.key!)}
                 className={cn(
-                  "aspect-square rounded-lg flex flex-col items-center justify-center text-center transition-all hover:ring-2 hover:ring-[--treker-accent]/50",
-                  wd ? hoursColor(h) : "hover:bg-[--treker-border]",
-                  isToday && !wd && "ring-2 ring-[--treker-accent]"
+                  "aspect-square rounded-lg flex flex-col items-center justify-center text-center transition-all hover:ring-2 hover:ring-[var(--treker-accent)]/50",
+                  wd ? hoursColor(h) : "hover:bg-[var(--treker-border)]",
+                  isToday && !wd && "ring-2 ring-[var(--treker-accent)]"
                 )}
               >
-                <span className={cn("text-xs font-medium leading-none", wd ? "" : "text-[--treker-text-muted]")}>
+                <span className={cn("text-xs font-medium leading-none", wd ? "" : "text-[var(--treker-text-muted)]")}>
                   {cell.dayNum}
                 </span>
                 {wd && (
@@ -169,11 +169,11 @@ export default function WorkPage() {
             { label: "1–3ч", cls: "bg-orange-100 dark:bg-orange-950" },
             { label: "4–5ч", cls: "bg-orange-300/70" },
             { label: "6–7ч", cls: "bg-orange-400/80" },
-            { label: "8+ч",  cls: "bg-[--treker-accent]" },
+            { label: "8+ч",  cls: "bg-[var(--treker-accent)]" },
           ].map(({ label, cls }) => (
             <div key={label} className="flex items-center gap-1">
               <div className={cn("w-3 h-3 rounded-sm", cls)} />
-              <span className="text-[10px] text-[--treker-text-muted]">{label}</span>
+              <span className="text-[10px] text-[var(--treker-text-muted)]">{label}</span>
             </div>
           ))}
         </div>
@@ -275,7 +275,7 @@ function WorkDayModal({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Описание <span className="text-[--treker-text-muted] font-normal">(необязательно)</span></Label>
+            <Label>Описание <span className="text-[var(--treker-text-muted)] font-normal">(необязательно)</span></Label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -286,7 +286,7 @@ function WorkDayModal({
           <Button
             onClick={handleSave}
             disabled={saving || !valid}
-            className="w-full bg-[--treker-accent] hover:bg-[--treker-accent]/90 text-white"
+            className="w-full bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white"
           >
             {saving ? "Сохраняем…" : existing ? "Обновить" : "Добавить"}
           </Button>

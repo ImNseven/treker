@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
@@ -85,24 +85,24 @@ export default function RunningPage() {
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
       {/* Month switcher */}
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-[--treker-card] border border-[--treker-border] flex items-center justify-center text-[--treker-text-muted] hover:text-[--treker-text]">‹</button>
-        <span className="flex-1 text-center text-sm font-medium text-[--treker-text] capitalize">{monthLabel}</span>
-        <button onClick={nextMonth} className="w-7 h-7 rounded-full bg-[--treker-card] border border-[--treker-border] flex items-center justify-center text-[--treker-text-muted] hover:text-[--treker-text]">›</button>
+        <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-[var(--treker-card)] border border-[var(--treker-border)] flex items-center justify-center text-[var(--treker-text-muted)] hover:text-[var(--treker-text)]">‹</button>
+        <span className="flex-1 text-center text-sm font-medium text-[var(--treker-text)] capitalize">{monthLabel}</span>
+        <button onClick={nextMonth} className="w-7 h-7 rounded-full bg-[var(--treker-card)] border border-[var(--treker-border)] flex items-center justify-center text-[var(--treker-text-muted)] hover:text-[var(--treker-text)]">›</button>
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="bg-[--treker-card] rounded-xl p-3 border border-[--treker-border] text-center">
-          <p className="text-xs text-[--treker-text-muted]">Пробежки</p>
-          <p className="text-xl font-bold text-[--treker-text] tnum">{stats.count}</p>
+        <div className="bg-[var(--treker-card)] rounded-xl p-3 border border-[var(--treker-border)] text-center">
+          <p className="text-xs text-[var(--treker-text-muted)]">Пробежки</p>
+          <p className="text-xl font-bold text-[var(--treker-text)] tnum">{stats.count}</p>
         </div>
-        <div className="bg-[--treker-card] rounded-xl p-3 border border-[--treker-border] text-center">
-          <p className="text-xs text-[--treker-text-muted]">Дистанция</p>
-          <p className="text-xl font-bold text-[--treker-text] tnum">{stats.totalKm.toFixed(1)} <span className="text-sm font-normal">км</span></p>
+        <div className="bg-[var(--treker-card)] rounded-xl p-3 border border-[var(--treker-border)] text-center">
+          <p className="text-xs text-[var(--treker-text-muted)]">Дистанция</p>
+          <p className="text-xl font-bold text-[var(--treker-text)] tnum">{stats.totalKm.toFixed(1)} <span className="text-sm font-normal">км</span></p>
         </div>
-        <div className="bg-[--treker-card] rounded-xl p-3 border border-[--treker-border] text-center">
-          <p className="text-xs text-[--treker-text-muted]">Темп</p>
-          <p className="text-base font-bold text-[--treker-text] tnum">
+        <div className="bg-[var(--treker-card)] rounded-xl p-3 border border-[var(--treker-border)] text-center">
+          <p className="text-xs text-[var(--treker-text-muted)]">Темп</p>
+          <p className="text-base font-bold text-[var(--treker-text)] tnum">
             {stats.avgPace ? formatPace(stats.avgPace) : "—"}
           </p>
         </div>
@@ -110,8 +110,8 @@ export default function RunningPage() {
 
       {/* Bar chart */}
       {chartData.length > 0 && (
-        <div className="bg-[--treker-card] rounded-xl p-4 border border-[--treker-border] mb-5">
-          <p className="text-xs text-[--treker-text-muted] mb-3">км по дням</p>
+        <div className="bg-[var(--treker-card)] rounded-xl p-4 border border-[var(--treker-border)] mb-5">
+          <p className="text-xs text-[var(--treker-text-muted)] mb-3">км по дням</p>
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={chartData} barSize={12}>
               <XAxis dataKey="date" tick={{ fontSize: 9, fill: "var(--treker-text-muted)" }} axisLine={false} tickLine={false} />
@@ -141,7 +141,7 @@ export default function RunningPage() {
       <div className="flex justify-end mb-4">
         <Button
           onClick={() => { setEditRun(null); setModalOpen(true); }}
-          className="bg-[--treker-accent] hover:bg-[--treker-accent]/90 text-white gap-1.5"
+          className="bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white gap-1.5"
           size="sm"
         >
           <Plus size={16} />
@@ -152,7 +152,7 @@ export default function RunningPage() {
       {/* Run list */}
       <div className="space-y-2">
         {runs.length === 0 && (
-          <p className="text-[--treker-text-muted] text-sm text-center py-10">
+          <p className="text-[var(--treker-text-muted)] text-sm text-center py-10">
             Нет пробежек за этот месяц.
           </p>
         )}
@@ -162,35 +162,35 @@ export default function RunningPage() {
           return (
             <div
               key={run.id}
-              className="bg-[--treker-card] rounded-xl px-4 py-3 border border-[--treker-border] flex items-center gap-3"
+              className="bg-[var(--treker-card)] rounded-xl px-4 py-3 border border-[var(--treker-border)] flex items-center gap-3"
             >
               {/* Date */}
-              <div className="text-xs text-[--treker-text-muted] w-14 shrink-0">
+              <div className="text-xs text-[var(--treker-text-muted)] w-14 shrink-0">
                 {new Date(run.occurredOn).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}
               </div>
 
               {/* Stats */}
               <div className="flex-1 flex gap-4">
-                <span className="text-sm font-semibold text-[--treker-text] tnum">{km.toFixed(2)} км</span>
-                <span className="text-sm text-[--treker-text-muted] tnum">{formatDuration(run.durationSec)}</span>
-                {pace && <span className="text-sm text-[--treker-text-muted] tnum">{formatPace(pace)}</span>}
+                <span className="text-sm font-semibold text-[var(--treker-text)] tnum">{km.toFixed(2)} км</span>
+                <span className="text-sm text-[var(--treker-text-muted)] tnum">{formatDuration(run.durationSec)}</span>
+                {pace && <span className="text-sm text-[var(--treker-text-muted)] tnum">{formatPace(pace)}</span>}
               </div>
 
               {run.note && (
-                <span className="text-xs text-[--treker-text-muted] truncate max-w-[80px]">{run.note}</span>
+                <span className="text-xs text-[var(--treker-text-muted)] truncate max-w-[80px]">{run.note}</span>
               )}
 
               {/* Actions */}
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => { setEditRun(run); setModalOpen(true); }}
-                  className="text-xs text-[--treker-text-muted] hover:text-[--treker-text] transition-colors"
+                  className="text-xs text-[var(--treker-text-muted)] hover:text-[var(--treker-text)] transition-colors"
                 >
                   Изм.
                 </button>
                 <button
                   onClick={() => setDeleteId(run.id)}
-                  className="text-[--treker-text-muted] hover:text-red-500 transition-colors"
+                  className="text-[var(--treker-text-muted)] hover:text-red-500 transition-colors"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -213,7 +213,7 @@ export default function RunningPage() {
       <Dialog open={!!deleteId} onOpenChange={(v) => { if (!v) setDeleteId(null); }}>
         <DialogContent className="sm:max-w-xs">
           <DialogHeader><DialogTitle>Удалить пробежку?</DialogTitle></DialogHeader>
-          <p className="text-sm text-[--treker-text-muted] mt-1">Это действие нельзя отменить.</p>
+          <p className="text-sm text-[var(--treker-text-muted)] mt-1">Это действие нельзя отменить.</p>
           <div className="flex gap-2 mt-4">
             <Button variant="outline" className="flex-1" onClick={() => setDeleteId(null)}>Отмена</Button>
             <Button variant="destructive" className="flex-1" onClick={() => deleteId && handleDelete(deleteId)}>Удалить</Button>
@@ -329,13 +329,13 @@ function RunModal({
 
           {/* Pace preview */}
           {pace && (
-            <p className="text-sm text-[--treker-text-muted] text-center">
-              Темп: <span className="font-semibold text-[--treker-text] tnum">{formatPace(pace)}</span>
+            <p className="text-sm text-[var(--treker-text-muted)] text-center">
+              Темп: <span className="font-semibold text-[var(--treker-text)] tnum">{formatPace(pace)}</span>
             </p>
           )}
 
           <div className="space-y-1.5">
-            <Label>Заметка <span className="text-[--treker-text-muted] font-normal">(необязательно)</span></Label>
+            <Label>Заметка <span className="text-[var(--treker-text-muted)] font-normal">(необязательно)</span></Label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -346,7 +346,7 @@ function RunModal({
           <Button
             onClick={handleSave}
             disabled={saving || !valid}
-            className="w-full bg-[--treker-accent] hover:bg-[--treker-accent]/90 text-white"
+            className="w-full bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white"
           >
             {saving ? "Сохраняем…" : run ? "Сохранить" : "Добавить"}
           </Button>

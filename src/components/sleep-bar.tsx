@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { SleepSegment } from "@/lib/sleep";
 
@@ -17,7 +17,7 @@ export function SleepBar({ segments, className }: SleepBarProps) {
   return (
     <div className={className}>
       {/* Bar track */}
-      <div className="relative h-5 rounded-full bg-[--treker-border] overflow-hidden">
+      <div className="relative h-5 rounded-full bg-[var(--treker-border)] overflow-hidden">
         {/* Gradient overlay segments */}
         {segments.map((seg, i) => {
           const left  = (seg.startMinute / TOTAL_MINUTES) * 100;
@@ -51,7 +51,7 @@ export function SleepBar({ segments, className }: SleepBarProps) {
         {HOUR_LABELS.map((h) => (
           <span
             key={h}
-            className="text-[9px] text-[--treker-text-muted] tnum"
+            className="text-[9px] text-[var(--treker-text-muted)] tnum"
             style={
               h === 0
                 ? { marginLeft: 0 }

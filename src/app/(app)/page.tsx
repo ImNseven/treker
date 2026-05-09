@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -87,10 +87,10 @@ export default function DashboardPage() {
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
       {/* Greeting */}
       <div className="mb-6">
-        <p className="text-xs text-[--treker-text-muted]">
+        <p className="text-xs text-[var(--treker-text-muted)]">
           {today.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" })}
         </p>
-        <h1 className="text-2xl font-bold text-[--treker-text]">{greeting()} 👋</h1>
+        <h1 className="text-2xl font-bold text-[var(--treker-text)]">{greeting()} 👋</h1>
       </div>
 
       {/* Bento grid */}
@@ -99,11 +99,11 @@ export default function DashboardPage() {
         {/* Habits widget — full width */}
         <Link
           href="/habits"
-          className="col-span-2 bg-[--treker-card] rounded-2xl p-4 border border-[--treker-border] hover:border-[--treker-accent]/50 transition-colors block"
+          className="col-span-2 bg-[var(--treker-card)] rounded-2xl p-4 border border-[var(--treker-border)] hover:border-[var(--treker-accent)]/50 transition-colors block"
         >
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[--treker-text-muted] font-medium">Привычки сегодня</p>
-            <span className="text-xs font-bold text-[--treker-accent] tnum">
+            <p className="text-xs text-[var(--treker-text-muted)] font-medium">Привычки сегодня</p>
+            <span className="text-xs font-bold text-[var(--treker-accent)] tnum">
               {doneCount}/{habits.length}
             </span>
           </div>
@@ -125,9 +125,9 @@ export default function DashboardPage() {
             })}
           </div>
           {habits.length > 0 && (
-            <div className="mt-2 h-1.5 rounded-full bg-[--treker-border] overflow-hidden">
+            <div className="mt-2 h-1.5 rounded-full bg-[var(--treker-border)] overflow-hidden">
               <div
-                className="h-full rounded-full bg-[--treker-accent] transition-all"
+                className="h-full rounded-full bg-[var(--treker-accent)] transition-all"
                 style={{ width: `${habits.length > 0 ? (doneCount / habits.length) * 100 : 0}%` }}
               />
             </div>
@@ -137,12 +137,12 @@ export default function DashboardPage() {
         {/* Sleep widget */}
         <Link
           href="/sleep"
-          className="col-span-2 bg-[--treker-card] rounded-2xl p-4 border border-[--treker-border] hover:border-[--treker-accent]/50 transition-colors block"
+          className="col-span-2 bg-[var(--treker-card)] rounded-2xl p-4 border border-[var(--treker-border)] hover:border-[var(--treker-accent)]/50 transition-colors block"
         >
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-[--treker-text-muted] font-medium">Последний сон</p>
+            <p className="text-xs text-[var(--treker-text-muted)] font-medium">Последний сон</p>
             {lastSleepDuration > 0 && (
-              <span className="text-sm font-bold text-[--treker-text] tnum">
+              <span className="text-sm font-bold text-[var(--treker-text)] tnum">
                 {formatSleepDuration(lastSleepDuration)}
               </span>
             )}
@@ -150,22 +150,22 @@ export default function DashboardPage() {
           {lastSleepSegments.length > 0 ? (
             <SleepBar segments={lastSleepSegments} />
           ) : (
-            <p className="text-xs text-[--treker-text-muted]">Нет данных</p>
+            <p className="text-xs text-[var(--treker-text-muted)]">Нет данных</p>
           )}
         </Link>
 
         {/* Running widget */}
         <Link
           href="/running"
-          className="bg-[--treker-card] rounded-2xl p-4 border border-[--treker-border] hover:border-[--treker-accent]/50 transition-colors block"
+          className="bg-[var(--treker-card)] rounded-2xl p-4 border border-[var(--treker-border)] hover:border-[var(--treker-accent)]/50 transition-colors block"
         >
-          <p className="text-xs text-[--treker-text-muted] font-medium mb-2">Бег этот месяц</p>
-          <p className="text-2xl font-bold text-[--treker-text] tnum">
+          <p className="text-xs text-[var(--treker-text-muted)] font-medium mb-2">Бег этот месяц</p>
+          <p className="text-2xl font-bold text-[var(--treker-text)] tnum">
             {runStats.totalKm.toFixed(1)}
             <span className="text-sm font-normal ml-1">км</span>
           </p>
           {lastRun && (
-            <div className="mt-2 text-xs text-[--treker-text-muted]">
+            <div className="mt-2 text-xs text-[var(--treker-text-muted)]">
               <p className="tnum">
                 Последняя: {Number(lastRun.distanceKm).toFixed(2)} км •{" "}
                 {formatDuration(lastRun.durationSec)}
@@ -177,27 +177,27 @@ export default function DashboardPage() {
             </div>
           )}
           {runs.length === 0 && (
-            <p className="text-xs text-[--treker-text-muted] mt-1">Нет пробежек</p>
+            <p className="text-xs text-[var(--treker-text-muted)] mt-1">Нет пробежек</p>
           )}
         </Link>
 
         {/* Work widget */}
         <Link
           href="/work"
-          className="bg-[--treker-card] rounded-2xl p-4 border border-[--treker-border] hover:border-[--treker-accent]/50 transition-colors block"
+          className="bg-[var(--treker-card)] rounded-2xl p-4 border border-[var(--treker-border)] hover:border-[var(--treker-accent)]/50 transition-colors block"
         >
-          <p className="text-xs text-[--treker-text-muted] font-medium mb-2">Работа этот месяц</p>
-          <p className="text-2xl font-bold text-[--treker-text] tnum">
+          <p className="text-xs text-[var(--treker-text-muted)] font-medium mb-2">Работа этот месяц</p>
+          <p className="text-2xl font-bold text-[var(--treker-text)] tnum">
             {totalWorkHours.toFixed(0)}
             <span className="text-sm font-normal ml-1">ч</span>
           </p>
           {todayWork ? (
-            <p className="mt-2 text-xs text-[--treker-text-muted] tnum">
+            <p className="mt-2 text-xs text-[var(--treker-text-muted)] tnum">
               Сегодня: {Number(todayWork.hours).toFixed(1)} ч
               {todayWork.description && ` · ${todayWork.description}`}
             </p>
           ) : (
-            <p className="mt-2 text-xs text-[--treker-text-muted]">Сегодня не отмечено</p>
+            <p className="mt-2 text-xs text-[var(--treker-text-muted)]">Сегодня не отмечено</p>
           )}
         </Link>
 

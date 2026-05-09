@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
 import { Plus, MoreHorizontal, Archive } from "lucide-react";
@@ -84,7 +84,7 @@ export default function HabitsPage() {
     <div className="p-4 md:p-6 max-w-3xl mx-auto">
       {/* Today strip */}
       <div className="mb-6">
-        <p className="text-xs text-[--treker-text-muted] font-medium mb-3">Сегодня</p>
+        <p className="text-xs text-[var(--treker-text-muted)] font-medium mb-3">Сегодня</p>
         <div className="flex gap-3 flex-wrap">
           {habits.map((h) => {
             const done = todayLogSet.has(h.id);
@@ -96,20 +96,20 @@ export default function HabitsPage() {
                     "w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-sm",
                     done
                       ? "text-white shadow-md"
-                      : "bg-[--treker-card] border-2 border-[--treker-border] text-[--treker-text-muted]"
+                      : "bg-[var(--treker-card)] border-2 border-[var(--treker-border)] text-[var(--treker-text-muted)]"
                   )}
                   style={done ? { background: `linear-gradient(135deg, ${h.color}, ${h.color}cc)` } : {}}
                   title={h.name}
                 >
                   <DynamicIcon name={h.icon} size={24} />
                 </button>
-                <span className="text-[10px] text-[--treker-text-muted] w-14 text-center truncate">{h.name}</span>
+                <span className="text-[10px] text-[var(--treker-text-muted)] w-14 text-center truncate">{h.name}</span>
               </div>
             );
           })}
           <button
             onClick={() => setModalOpen(true)}
-            className="w-14 h-14 rounded-full flex items-center justify-center border-2 border-dashed border-[--treker-border] text-[--treker-text-muted] hover:border-[--treker-accent] hover:text-[--treker-accent] transition-colors"
+            className="w-14 h-14 rounded-full flex items-center justify-center border-2 border-dashed border-[var(--treker-border)] text-[var(--treker-text-muted)] hover:border-[var(--treker-accent)] hover:text-[var(--treker-accent)] transition-colors"
           >
             <Plus size={20} />
           </button>
@@ -118,7 +118,7 @@ export default function HabitsPage() {
 
       {/* Month grid */}
       <div className="mb-4">
-        <p className="text-xs text-[--treker-text-muted] font-medium mb-3">
+        <p className="text-xs text-[var(--treker-text-muted)] font-medium mb-3">
           {today.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}
         </p>
 
@@ -126,13 +126,13 @@ export default function HabitsPage() {
           <table className="w-full text-xs">
             <thead>
               <tr>
-                <th className="text-left pr-3 py-1 text-[--treker-text-muted] font-medium whitespace-nowrap w-28">Привычка</th>
+                <th className="text-left pr-3 py-1 text-[var(--treker-text-muted)] font-medium whitespace-nowrap w-28">Привычка</th>
                 {days.map((d) => (
-                  <th key={d} className={cn("w-6 text-center py-1 text-[--treker-text-muted]", d === today.getDate() && "text-[--treker-accent] font-bold")}>
+                  <th key={d} className={cn("w-6 text-center py-1 text-[var(--treker-text-muted)]", d === today.getDate() && "text-[var(--treker-accent)] font-bold")}>
                     {d}
                   </th>
                 ))}
-                <th className="pl-2 text-center text-[--treker-text-muted] font-medium">🔥</th>
+                <th className="pl-2 text-center text-[var(--treker-text-muted)] font-medium">🔥</th>
               </tr>
             </thead>
             <tbody>
@@ -142,12 +142,12 @@ export default function HabitsPage() {
                 const streak = calcStreak(logDates, today);
 
                 return (
-                  <tr key={h.id} className="border-t border-[--treker-border]">
+                  <tr key={h.id} className="border-t border-[var(--treker-border)]">
                     <td className="pr-3 py-1.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <DynamicIcon name={h.icon} size={14} style={{ color: h.color }} />
-                        <span className="truncate max-w-[90px] text-[--treker-text]">{h.name}</span>
-                        <button onClick={() => setMenuHabit(h)} className="text-[--treker-text-muted] hover:text-[--treker-text] ml-1">
+                        <span className="truncate max-w-[90px] text-[var(--treker-text)]">{h.name}</span>
+                        <button onClick={() => setMenuHabit(h)} className="text-[var(--treker-text-muted)] hover:text-[var(--treker-text)] ml-1">
                           <MoreHorizontal size={12} />
                         </button>
                       </div>
@@ -164,17 +164,17 @@ export default function HabitsPage() {
                           <div
                             className={cn(
                               "w-4 h-4 rounded-full mx-auto",
-                              isLogged     ? "bg-[--treker-accent]"
+                              isLogged     ? "bg-[var(--treker-accent)]"
                               : isFuture   ? ""
                               : isPast     ? "bg-red-100 dark:bg-red-950"
-                              : "border border-[--treker-border]"
+                              : "border border-[var(--treker-border)]"
                             )}
                           />
                         </td>
                       );
                     })}
                     <td className="pl-2 text-center">
-                      <span className="font-bold text-[--treker-accent] tnum">{streak}</span>
+                      <span className="font-bold text-[var(--treker-accent)] tnum">{streak}</span>
                     </td>
                   </tr>
                 );
@@ -194,7 +194,7 @@ export default function HabitsPage() {
             <div className="flex flex-col gap-2 mt-2">
               <button
                 onClick={() => archiveHabit(menuHabit.id)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[--treker-text-muted] hover:bg-[--treker-border] transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--treker-text-muted)] hover:bg-[var(--treker-border)] transition-colors"
               >
                 <Archive size={16} />
                 Архивировать
@@ -265,8 +265,8 @@ function HabitModal({
                   className={cn(
                     "w-9 h-9 rounded-lg flex items-center justify-center border transition-colors",
                     icon === ic
-                      ? "border-[--treker-accent] bg-[--treker-accent]/10"
-                      : "border-[--treker-border] hover:bg-[--treker-border]"
+                      ? "border-[var(--treker-accent)] bg-[var(--treker-accent)]/10"
+                      : "border-[var(--treker-border)] hover:bg-[var(--treker-border)]"
                   )}
                 >
                   <DynamicIcon name={ic} size={16} />
@@ -284,7 +284,7 @@ function HabitModal({
                   onClick={() => setColor(c)}
                   className={cn(
                     "w-7 h-7 rounded-full border-2 transition-all",
-                    color === c ? "border-[--treker-text] scale-110" : "border-transparent"
+                    color === c ? "border-[var(--treker-text)] scale-110" : "border-transparent"
                   )}
                   style={{ backgroundColor: c }}
                 />
@@ -295,7 +295,7 @@ function HabitModal({
           <Button
             onClick={handleSave}
             disabled={saving || !name.trim()}
-            className="w-full bg-[--treker-accent] hover:bg-[--treker-accent]/90 text-white"
+            className="w-full bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white"
           >
             {saving ? "Сохраняем…" : "Добавить"}
           </Button>
