@@ -10,7 +10,7 @@ const PUBLIC_PATHS = [
 // Cookie name must match session.ts
 const SESSION_COOKIE = "treker_session";
 
-export function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isPublic =

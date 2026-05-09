@@ -31,9 +31,14 @@ const HABITS = [
   { name: "Бассейн",          icon: "Waves",      color: "#0284c7" },
 ];
 
+// Module-level cache — seed check runs only once per server process
+let seeded = false;
+
 export async function seedIfEmpty() {
+  if (seeded) return;
   const count = await db.category.count({ where: { userId: "owner" } });
-  if (count > 0) return;
+  if (count > 0) { seeded = true; return; }
+  seeded = true;
 
   await db.$transaction([
     ...INCOME_CATEGORIES.map((c, i) =>
