@@ -29,41 +29,43 @@ interface DayRowEntry {
 
 interface DayRow {
   dayKey: string;
-  entries: DayRowEntry[];
-  totalMinutes: number;
+  entries: DayRowEntry[];                        // entries that *started* this day
+  daySegments: ReturnType<typeof splitSleepEntry>; // every segment overlapping this day (for the bar)
+  totalMinutes: number;                          // sum of asleep minutes during this calendar day
 }
 
 function buildDayRows(entries: SleepEntry[]): DayRow[] {
   const dayMap = new Map<string, DayRow>();
 
+  function getRow(key: string): DayRow {
+    let row = dayMap.get(key);
+    if (!row) {
+      row = { dayKey: key, entries: [], daySegments: [], totalMinutes: 0 };
+      dayMap.set(key, row);
+    }
+    return row;
+  }
+
   for (const entry of entries) {
     const startAt = new Date(entry.startAt);
     const endAt   = new Date(entry.endAt);
     const segments = splitSleepEntry({ startAt, endAt });
-    const totalMinutes = sleepDurationMinutes({ startAt, endAt });
+    const totalEntryMinutes = sleepDurationMinutes({ startAt, endAt });
 
-    // Ensure all touched days exist in map
+    // Each segment contributes to its own day's bar + total — including the
+    // post-midnight portion which lands on the *next* day's row.
     for (const seg of segments) {
-      if (!dayMap.has(seg.dayKey)) {
-        dayMap.set(seg.dayKey, { dayKey: seg.dayKey, entries: [], totalMinutes: 0 });
-      }
+      const row = getRow(seg.dayKey);
+      row.daySegments.push(seg);
+      row.totalMinutes += seg.endMinute - seg.startMinute;
     }
 
-    // Associate entry with the start day
-    const primaryDay = toLocalDateStr(startAt);
-    if (!dayMap.has(primaryDay)) {
-      dayMap.set(primaryDay, { dayKey: primaryDay, entries: [], totalMinutes: 0 });
-    }
-    const row = dayMap.get(primaryDay)!;
-    row.entries.push({ entry, segments, totalMinutes });
-    row.totalMinutes += totalMinutes;
+    // The detail row (time range, edit/delete buttons) belongs on the start day.
+    const startRow = getRow(toLocalDateStr(startAt));
+    startRow.entries.push({ entry, segments, totalMinutes: totalEntryMinutes });
   }
 
   return Array.from(dayMap.values()).sort((a, b) => b.dayKey.localeCompare(a.dayKey));
-}
-
-function segmentsForDay(dayKey: string, entries: DayRowEntry[]) {
-  return entries.flatMap(e => e.segments.filter(s => s.dayKey === dayKey));
 }
 
 export default function SleepPage() {
@@ -137,7 +139,7 @@ export default function SleepPage() {
 
             {/* 24h sleep bar */}
             <SleepBar
-              segments={segmentsForDay(row.dayKey, row.entries)}
+              segments={row.daySegments}
               className="mb-3"
             />
 
