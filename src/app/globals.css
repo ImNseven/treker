@@ -57,13 +57,13 @@
   --primary-foreground:  #ffffff;
   --secondary:           #f5f0eb;
   --secondary-foreground:#1c1917;
-  --muted:               #f5f0eb;
-  --muted-foreground:    #a8a29e;
+  --muted:               #ede4d6;
+  --muted-foreground:    #78716c;
   --accent:              #f97316;
   --accent-foreground:   #ffffff;
-  --destructive:         #be123c;
-  --border:              #FAEEE1;
-  --input:               #FAEEE1;
+  --destructive:         #dc2626;
+  --border:              #e2cfb3;
+  --input:               #e2cfb3;
   --ring:                #f97316;
   --radius:              0.75rem;
 
@@ -71,17 +71,17 @@
   --treker-bg:           #FAF6F0;
   --treker-card:         #FFFFFF;
   --treker-text:         #1c1917;
-  --treker-text-muted:   #a8a29e;
-  --treker-border:       #FAEEE1;
+  --treker-text-muted:   #78716c;
+  --treker-border:       #e2cfb3;
   --treker-accent:       #f97316;
   --treker-accent-2:     #ec4899;
-  --treker-income:       #ea580c;
-  --treker-expense:      #be123c;
+  --treker-income:       #16a34a;     /* green-600 — clearly green */
+  --treker-expense:      #dc2626;     /* red-600 — clearly red */
   --treker-ring:         #f97316;
   --treker-radius-card:  16px;
   --treker-radius-btn:   8px;
   --treker-radius-input: 12px;
-  --treker-shadow-card:  0 2px 8px rgba(0,0,0,.06), 0 0 0 1px #FAEEE1;
+  --treker-shadow-card:  0 1px 3px rgba(120,80,40,.08), 0 4px 12px rgba(120,80,40,.06), 0 0 0 1px #e2cfb3;
 
   /* Chart colors */
   --chart-1: #f97316;
@@ -117,22 +117,22 @@
   --muted-foreground:    #a8a29e;
   --accent:              #fb923c;
   --accent-foreground:   #1c1917;
-  --destructive:         #fb7185;
-  --border:              #3f3f3a;
-  --input:               #3f3f3a;
+  --destructive:         #f87171;
+  --border:              #57534e;
+  --input:               #57534e;
   --ring:                #fb923c;
 
   --treker-bg:           #1c1917;
   --treker-card:         #292524;
   --treker-text:         #fafaf9;
   --treker-text-muted:   #a8a29e;
-  --treker-border:       #3f3f3a;
+  --treker-border:       #57534e;
   --treker-accent:       #fb923c;
   --treker-accent-2:     #f472b6;
-  --treker-income:       #fb923c;
-  --treker-expense:      #fb7185;
+  --treker-income:       #4ade80;     /* green-400 — clearly green on dark */
+  --treker-expense:      #f87171;     /* red-400 — clearly red on dark */
   --treker-ring:         #fb923c;
-  --treker-shadow-card:  0 2px 8px rgba(0,0,0,.3), 0 0 0 1px #3f3f3a;
+  --treker-shadow-card:  0 2px 8px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25), 0 0 0 1px #57534e;
 
   --chart-1: #fb923c;
   --chart-2: #f472b6;
