@@ -185,10 +185,15 @@ export default function FinancePage() {
               {txs.map((tx) => (
                 <div key={tx.id} className="flex items-center gap-3 px-4 py-3">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 text-xs font-bold"
-                    style={{ backgroundColor: tx.category.color }}
+                    className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 text-sm font-bold",
+                      tx.kind === "income"
+                        ? "bg-[--treker-income]"
+                        : "bg-[--treker-expense]"
+                    )}
+                    aria-label={tx.kind === "income" ? "Доход" : "Расход"}
                   >
-                    {tx.category.name.charAt(0)}
+                    {tx.kind === "income" ? "Д" : "Р"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{tx.category.name}</p>
@@ -292,30 +297,44 @@ function TxModal({
         <div className="space-y-4 mt-2">
           {/* Kind toggle */}
           <div className="flex gap-2">
-            {(["expense", "income"] as const).map((k) => (
-              <button
-                key={k}
-                onClick={() => { setKind(k); setCategoryId(""); }}
-                className={cn(
-                  "flex-1 py-2 rounded-lg text-sm font-medium border transition-colors",
-                  kind === k
-                    ? k === "income"
-                      ? "bg-[--treker-income] text-white border-[--treker-income]"
-                      : "bg-[--treker-expense] text-white border-[--treker-expense]"
-                    : "border-[--treker-border] text-[--treker-text-muted]"
-                )}
-              >
-                {k === "income" ? "Доход" : "Расход"}
-              </button>
-            ))}
+            {(["expense", "income"] as const).map((k) => {
+              const active = kind === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => { setKind(k); setCategoryId(""); }}
+                  className={cn(
+                    "flex-1 py-2.5 rounded-lg text-sm font-medium border-2 outline-none",
+                    "transition-[transform,box-shadow,background-color,color,border-color] duration-150 ease-out",
+                    "active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[--treker-accent]/40",
+                    active
+                      ? k === "income"
+                        ? "bg-[--treker-income] text-white border-[--treker-income] shadow-md scale-[1.03]"
+                        : "bg-[--treker-expense] text-white border-[--treker-expense] shadow-md scale-[1.03]"
+                      : "border-[--treker-border] text-[--treker-text-muted] hover:border-[--treker-text-muted]/60 hover:bg-[--treker-border]/40 hover:text-[--treker-text]"
+                  )}
+                >
+                  {k === "income" ? "Доход" : "Расход"}
+                </button>
+              );
+            })}
           </div>
 
           {/* Category */}
           <div className="space-y-1.5">
             <Label>Категория</Label>
-            <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? "")}>
+            <Select value={categoryId || undefined} onValueChange={(v) => setCategoryId(v ?? "")}>
               <SelectTrigger>
-                <SelectValue placeholder="Выберите категорию" />
+                <SelectValue>
+                  {(value) =>
+                    value
+                      ? (filteredCats.find((c) => c.id === value)?.name ??
+                          categories.find((c) => c.id === value)?.name ??
+                          "—")
+                      : <span className="text-muted-foreground">Выберите категорию</span>
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {filteredCats.map((c) => (
@@ -359,11 +378,13 @@ function TxModal({
             />
           </div>
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-3 border-t border-[--treker-border] mt-2">
             {tx && (
               <button
+                type="button"
                 onClick={onDelete}
-                className="p-2 rounded-lg text-[--treker-expense] hover:bg-[--treker-expense]/10 transition-colors"
+                aria-label="Удалить"
+                className="p-2 rounded-lg border-2 border-[--treker-border] text-[--treker-expense] transition-all hover:bg-[--treker-expense]/10 hover:border-[--treker-expense]/40 active:scale-95"
               >
                 <Trash2 size={18} />
               </button>
@@ -371,7 +392,7 @@ function TxModal({
             <Button
               onClick={handleSave}
               disabled={saving || !categoryId || !amount}
-              className="flex-1 bg-[--treker-accent] hover:bg-[--treker-accent]/90 text-white"
+              className="flex-1 h-10 bg-[--treker-accent] text-white border-2 border-[--treker-accent] shadow-md transition-all hover:bg-[--treker-accent]/90 hover:shadow-lg active:scale-[0.98] disabled:shadow-none disabled:opacity-60"
             >
               {saving ? "Сохраняем…" : tx ? "Сохранить" : "Добавить"}
             </Button>
