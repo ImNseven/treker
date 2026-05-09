@@ -6,12 +6,15 @@ const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 export async function setSession() {
   const jar = await cookies();
+  // SECURE_COOKIES=true must be set explicitly in production env vars.
+  // Defaulting to false lets the local `npm start` (which runs as NODE_ENV=production)
+  // still work over plain HTTP; Render sets SECURE_COOKIES=true.
   jar.set(COOKIE, sign("owner"), {
     httpOnly: true,
     sameSite: "lax",
     maxAge: MAX_AGE,
     path: "/",
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.SECURE_COOKIES === "true",
   });
 }
 
