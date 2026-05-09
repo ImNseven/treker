@@ -40,21 +40,19 @@ export async function seedIfEmpty() {
   if (count > 0) { seeded = true; return; }
   seeded = true;
 
-  await db.$transaction([
-    ...INCOME_CATEGORIES.map((c, i) =>
-      db.category.create({
-        data: { userId: "owner", kind: Kind.income, sortOrder: i, ...c },
-      })
-    ),
-    ...EXPENSE_CATEGORIES.map((c, i) =>
-      db.category.create({
-        data: { userId: "owner", kind: Kind.expense, sortOrder: i, ...c },
-      })
-    ),
-    ...HABITS.map((h, i) =>
-      db.habit.create({
-        data: { userId: "owner", sortOrder: i, ...h },
-      })
-    ),
-  ]);
+  for (let i = 0; i < INCOME_CATEGORIES.length; i++) {
+    await db.category.create({
+      data: { userId: "owner", kind: Kind.income, sortOrder: i, ...INCOME_CATEGORIES[i] },
+    });
+  }
+  for (let i = 0; i < EXPENSE_CATEGORIES.length; i++) {
+    await db.category.create({
+      data: { userId: "owner", kind: Kind.expense, sortOrder: i, ...EXPENSE_CATEGORIES[i] },
+    });
+  }
+  for (let i = 0; i < HABITS.length; i++) {
+    await db.habit.create({
+      data: { userId: "owner", sortOrder: i, ...HABITS[i] },
+    });
+  }
 }
