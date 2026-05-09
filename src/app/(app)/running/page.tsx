@@ -89,9 +89,14 @@ export default function RunningPage() {
     else setMonth(m => m + 1);
   }
 
+  // Invalidate every cached running query (the month list AND ?days= chart)
+  function refreshAll() {
+    globalMutate((key) => typeof key === "string" && key.startsWith("/api/running"));
+  }
+
   async function handleDelete(id: string) {
     await fetch(`/api/running/${id}`, { method: "DELETE" });
-    globalMutate(apiKey);
+    refreshAll();
     setDeleteId(null);
   }
 
@@ -141,18 +146,12 @@ export default function RunningPage() {
             margin={{ top: 14, right: 0, left: 0, bottom: 4 }}
           >
             <YAxis
-              width={32}
+              width={28}
               domain={[0, Math.ceil(chartMaxKm * 1.1)]}
+              allowDecimals={false}
               tick={{ fontSize: 10, fill: "var(--treker-text-muted)" }}
               axisLine={false}
               tickLine={false}
-              label={{
-                value: "км",
-                angle: 0,
-                position: "insideTopLeft",
-                offset: -10,
-                style: { fontSize: 9, fill: "var(--treker-text-muted)" },
-              }}
             />
             <XAxis
               dataKey="label"
@@ -262,7 +261,7 @@ export default function RunningPage() {
         run={editRun}
         defaultDate={toDateStr(today)}
         onClose={() => { setModalOpen(false); setEditRun(null); }}
-        onSave={() => { globalMutate(apiKey); setModalOpen(false); setEditRun(null); }}
+        onSave={() => { refreshAll(); setModalOpen(false); setEditRun(null); }}
       />
 
       {/* Delete confirmation */}
