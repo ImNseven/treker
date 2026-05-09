@@ -31,28 +31,41 @@ const HABITS = [
   { name: "Бассейн",          icon: "Waves",      color: "#0284c7" },
 ];
 
-// Module-level cache — seed check runs only once per server process
+// Module-level cache — fast-path skip; the upserts below also guarantee
+// correctness if two concurrent requests race past this gate (HMR can reset
+// the variable in dev mode, so we can't rely on it alone).
 let seeded = false;
 
 export async function seedIfEmpty() {
   if (seeded) return;
   const count = await db.category.count({ where: { userId: "owner" } });
   if (count > 0) { seeded = true; return; }
-  seeded = true;
 
+  // Idempotent inserts via upsert on the (userId, kind, name) unique key —
+  // a race condition between two parallel requests cannot produce duplicates.
   for (let i = 0; i < INCOME_CATEGORIES.length; i++) {
-    await db.category.create({
-      data: { userId: "owner", kind: Kind.income, sortOrder: i, ...INCOME_CATEGORIES[i] },
+    const c = INCOME_CATEGORIES[i];
+    await db.category.upsert({
+      where:  { userId_kind_name: { userId: "owner", kind: Kind.income, name: c.name } },
+      create: { userId: "owner", kind: Kind.income, sortOrder: i, ...c },
+      update: {},
     });
   }
   for (let i = 0; i < EXPENSE_CATEGORIES.length; i++) {
-    await db.category.create({
-      data: { userId: "owner", kind: Kind.expense, sortOrder: i, ...EXPENSE_CATEGORIES[i] },
+    const c = EXPENSE_CATEGORIES[i];
+    await db.category.upsert({
+      where:  { userId_kind_name: { userId: "owner", kind: Kind.expense, name: c.name } },
+      create: { userId: "owner", kind: Kind.expense, sortOrder: i, ...c },
+      update: {},
     });
   }
   for (let i = 0; i < HABITS.length; i++) {
-    await db.habit.create({
-      data: { userId: "owner", sortOrder: i, ...HABITS[i] },
+    const h = HABITS[i];
+    await db.habit.upsert({
+      where:  { userId_name: { userId: "owner", name: h.name } },
+      create: { userId: "owner", sortOrder: i, ...h },
+      update: {},
     });
   }
+  seeded = true;
 }
