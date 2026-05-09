@@ -1,7 +1,8 @@
 ﻿"use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
-import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, Trash2, List, BarChart3 } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,6 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Category, Transaction, QuickTemplate } from "@prisma/client";
+
+function pluralizeTx(n: number): string {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return "транзакция";
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return "транзакции";
+  return "транзакций";
+}
 
 type TxWithCat = Transaction & { category: Category };
 type TplWithCat = QuickTemplate & { category: Category };
@@ -40,6 +48,7 @@ export default function FinancePage() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [tab, setTab] = useState<"all" | "income" | "expense">("all");
+  const [view, setView] = useState<"list" | "stats">("list");
   const [modalOpen, setModalOpen] = useState(false);
   const [editTx, setEditTx] = useState<TxWithCat | null>(null);
   const [undoTimer, setUndoTimer] = useState<{ id: string; timeout: ReturnType<typeof setTimeout> } | null>(null);
@@ -162,6 +171,36 @@ export default function FinancePage() {
         </div>
       )}
 
+      {/* View toggle: list vs stats */}
+      <div className="flex gap-2 p-1 mb-4 rounded-lg bg-[var(--treker-card)] border border-[var(--treker-border)]">
+        {([
+          { v: "list",  icon: List,       label: "Список"     },
+          { v: "stats", icon: BarChart3,  label: "Статистика" },
+        ] as const).map(({ v, icon: Icon, label }) => {
+          const active = view === v;
+          return (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition-all duration-150 active:scale-[0.98]",
+                active
+                  ? "bg-[var(--treker-accent)] text-white shadow-sm"
+                  : "text-[var(--treker-text-muted)] hover:text-[var(--treker-text)] hover:bg-[var(--treker-border)]/40"
+              )}
+            >
+              <Icon size={15} />
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {view === "stats" ? (
+        <StatsView transactions={transactions} monthLabel={monthLabel} />
+      ) : (
+        <>
       {/* Tabs */}
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="mb-4">
         <TabsList className="w-full">
@@ -214,6 +253,8 @@ export default function FinancePage() {
           </div>
         ))}
       </div>
+      </>
+      )}
 
       {/* FAB */}
       <button
@@ -400,5 +441,153 @@ function TxModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ── Stats view ───────────────────────────────────────────────────────────────
+
+function StatsView({
+  transactions,
+  monthLabel,
+}: {
+  transactions: TxWithCat[];
+  monthLabel: string;
+}) {
+  const [statsKind, setStatsKind] = useState<"expense" | "income">("expense");
+
+  const filtered = transactions.filter((t) => t.kind === statsKind);
+  const total = filtered.reduce((s, t) => s + Number(t.amount), 0);
+
+  const byCategory = useMemo(() => {
+    const map = new Map<string, { category: Category; total: number; count: number }>();
+    for (const tx of filtered) {
+      const cur = map.get(tx.categoryId);
+      if (cur) {
+        cur.total += Number(tx.amount);
+        cur.count += 1;
+      } else {
+        map.set(tx.categoryId, { category: tx.category, total: Number(tx.amount), count: 1 });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [filtered]);
+
+  const accent = statsKind === "income" ? "var(--treker-income)" : "var(--treker-expense)";
+
+  return (
+    <div className="space-y-4">
+      {/* Kind toggle */}
+      <div className="flex gap-2">
+        {(["expense", "income"] as const).map((k) => {
+          const active = statsKind === k;
+          return (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setStatsKind(k)}
+              className={cn(
+                "flex-1 py-2.5 rounded-lg text-sm font-medium border-2 outline-none",
+                "transition-[transform,box-shadow,background-color,color,border-color] duration-150 ease-out",
+                "active:scale-[0.97]",
+                active
+                  ? k === "income"
+                    ? "bg-[var(--treker-income)] text-white border-[var(--treker-income)] shadow-md scale-[1.02]"
+                    : "bg-[var(--treker-expense)] text-white border-[var(--treker-expense)] shadow-md scale-[1.02]"
+                  : "border-[var(--treker-border)] text-[var(--treker-text-muted)] hover:border-[var(--treker-text-muted)]/60 hover:bg-[var(--treker-border)]/40 hover:text-[var(--treker-text)]"
+              )}
+            >
+              {k === "income" ? "Доходы" : "Расходы"}
+            </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="bg-[var(--treker-card)] rounded-[var(--treker-radius-card)] shadow-[var(--treker-shadow-card)] py-12 text-center">
+          <p className="text-sm text-[var(--treker-text-muted)]">
+            Нет {statsKind === "income" ? "доходов" : "расходов"} за {monthLabel.toLowerCase()}
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Donut chart with center label */}
+          <div className="bg-[var(--treker-card)] rounded-[var(--treker-radius-card)] shadow-[var(--treker-shadow-card)] p-4">
+            <div className="relative h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={byCategory}
+                    dataKey="total"
+                    nameKey={(d) => d.category.name}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={62}
+                    outerRadius={92}
+                    paddingAngle={byCategory.length > 1 ? 2 : 0}
+                    stroke="none"
+                    isAnimationActive={false}
+                  >
+                    {byCategory.map((b) => (
+                      <Cell key={b.category.id} fill={b.category.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-[11px] uppercase tracking-wide text-[var(--treker-text-muted)]">
+                  {statsKind === "income" ? "Доходы" : "Расходы"}
+                </span>
+                <span className="text-2xl font-bold tnum mt-0.5" style={{ color: accent }}>
+                  {statsKind === "income" ? "+" : "−"}
+                  {formatAmount(total)}
+                </span>
+                <span className="text-[11px] text-[var(--treker-text-muted)] tnum mt-0.5">
+                  {filtered.length} {pluralizeTx(filtered.length)} · BYN
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Category breakdown */}
+          <div className="space-y-2">
+            {byCategory.map((b) => {
+              const pct = total > 0 ? (b.total / total) * 100 : 0;
+              return (
+                <div
+                  key={b.category.id}
+                  className="bg-[var(--treker-card)] border border-[var(--treker-border)] rounded-xl p-3 shadow-[var(--treker-shadow-card)]"
+                >
+                  <div className="flex items-center gap-2.5 mb-1.5">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: b.category.color }}
+                    />
+                    <span className="flex-1 text-sm font-medium truncate">{b.category.name}</span>
+                    <span className="text-sm font-semibold tnum" style={{ color: accent }}>
+                      {statsKind === "income" ? "+" : "−"}
+                      {formatAmount(b.total)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-[var(--treker-border)] overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-[width] duration-300 ease-out"
+                        style={{ width: `${pct}%`, backgroundColor: b.category.color }}
+                      />
+                    </div>
+                    <span className="text-[11px] text-[var(--treker-text-muted)] tnum w-8 text-right">
+                      {pct.toFixed(0)}%
+                    </span>
+                    <span className="text-[11px] text-[var(--treker-text-muted)] tnum w-8 text-right">
+                      {b.count}×
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
