@@ -1,7 +1,7 @@
 ﻿"use client";
 import { useState, useEffect, useMemo } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
-import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, Trash2, List, BarChart3 } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, Trash2, List, BarChart3, PiggyBank } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DepositsView } from "@/components/deposits-view";
 import type { Category, Transaction, QuickTemplate } from "@prisma/client";
 
 function pluralizeTx(n: number): string {
@@ -48,7 +49,7 @@ export default function FinancePage() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [tab, setTab] = useState<"all" | "income" | "expense">("all");
-  const [view, setView] = useState<"list" | "stats">("list");
+  const [view, setView] = useState<"list" | "stats" | "deposits">("list");
   const [modalOpen, setModalOpen] = useState(false);
   const [editTx, setEditTx] = useState<TxWithCat | null>(null);
   const [undoTimer, setUndoTimer] = useState<{ id: string; timeout: ReturnType<typeof setTimeout> } | null>(null);
@@ -171,11 +172,12 @@ export default function FinancePage() {
         </div>
       )}
 
-      {/* View toggle: list vs stats */}
-      <div className="flex gap-2 p-1 mb-4 rounded-lg bg-[var(--treker-card)] border border-[var(--treker-border)]">
+      {/* View toggle: list / stats / deposits */}
+      <div className="flex gap-1 p-1 mb-4 rounded-lg bg-[var(--treker-card)] border border-[var(--treker-border)]">
         {([
-          { v: "list",  icon: List,       label: "Список"     },
-          { v: "stats", icon: BarChart3,  label: "Статистика" },
+          { v: "list",     icon: List,       label: "Список"     },
+          { v: "stats",    icon: BarChart3,  label: "Статистика" },
+          { v: "deposits", icon: PiggyBank,  label: "Вклады"     },
         ] as const).map(({ v, icon: Icon, label }) => {
           const active = view === v;
           return (
@@ -199,6 +201,8 @@ export default function FinancePage() {
 
       {view === "stats" ? (
         <StatsView transactions={transactions} monthLabel={monthLabel} />
+      ) : view === "deposits" ? (
+        <DepositsView />
       ) : (
         <>
       {/* Tabs */}

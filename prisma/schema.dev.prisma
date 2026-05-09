@@ -119,6 +119,36 @@ model Run {
   @@index([userId, occurredOn])
 }
 
+model Deposit {
+  id         String            @id @default(cuid())
+  userId     String            @default("owner")
+  name       String
+  icon       String
+  color      String
+  goal       Decimal?
+  sortOrder  Int               @default(0)
+  isArchived Boolean           @default(false)
+  createdAt  DateTime          @default(now())
+  transfers  DepositTransfer[]
+
+  @@unique([userId, name])
+  @@index([userId, isArchived])
+}
+
+model DepositTransfer {
+  id         String   @id @default(cuid())
+  userId     String   @default("owner")
+  depositId  String
+  deposit    Deposit  @relation(fields: [depositId], references: [id], onDelete: Cascade)
+  amount     Decimal
+  note       String?
+  occurredOn DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([userId, depositId])
+  @@index([depositId, occurredOn])
+}
+
 enum Kind {
   income
   expense
