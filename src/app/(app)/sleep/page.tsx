@@ -1,49 +1,58 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { SleepBar } from "@/components/sleep-bar";
-import { splitSleepEntry, sleepDurationMinutes, formatSleepDuration } from "@/lib/sleep";
+import {
+  splitSleepEntry,
+  sleepDurationMinutes,
+  formatSleepDuration,
+  type SleepSegment,
+} from "@/lib/sleep";
+import { cn } from "@/lib/utils";
 import type { SleepEntry } from "@prisma/client";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+const DAYS = 30; // length of the timeline window
+
+// Hour scale at top of the timeline — every 2 hours
+const HOUR_TICKS = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24];
+
 function toLocalDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
-
 function toLocalTimeStr(d: Date): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 interface DayRowEntry {
   entry: SleepEntry;
-  segments: ReturnType<typeof splitSleepEntry>;
+  segments: SleepSegment[];
   totalMinutes: number;
 }
-
 interface DayRow {
   dayKey: string;
-  entries: DayRowEntry[];                        // entries that *started* this day
-  daySegments: ReturnType<typeof splitSleepEntry>; // every segment overlapping this day (for the bar)
-  totalMinutes: number;                          // sum of asleep minutes during this calendar day
+  date: Date;
+  entries: DayRowEntry[];     // entries that started this day (for the editor list)
+  daySegments: SleepSegment[]; // every segment overlapping this day (for the bar)
+  totalMinutes: number;        // sum of asleep minutes during this day
 }
 
-function buildDayRows(entries: SleepEntry[]): DayRow[] {
-  const dayMap = new Map<string, DayRow>();
+function buildTimeline(entries: SleepEntry[]): DayRow[] {
+  const map = new Map<string, DayRow>();
 
-  function getRow(key: string): DayRow {
-    let row = dayMap.get(key);
-    if (!row) {
-      row = { dayKey: key, entries: [], daySegments: [], totalMinutes: 0 };
-      dayMap.set(key, row);
+  function ensure(key: string, date: Date): DayRow {
+    let r = map.get(key);
+    if (!r) {
+      r = { dayKey: key, date, entries: [], daySegments: [], totalMinutes: 0 };
+      map.set(key, r);
     }
-    return row;
+    return r;
   }
 
   for (const entry of entries) {
@@ -52,33 +61,76 @@ function buildDayRows(entries: SleepEntry[]): DayRow[] {
     const segments = splitSleepEntry({ startAt, endAt });
     const totalEntryMinutes = sleepDurationMinutes({ startAt, endAt });
 
-    // Each segment contributes to its own day's bar + total — including the
-    // post-midnight portion which lands on the *next* day's row.
     for (const seg of segments) {
-      const row = getRow(seg.dayKey);
+      const [yy, mm, dd] = seg.dayKey.split("-").map(Number);
+      const row = ensure(seg.dayKey, new Date(yy, mm - 1, dd));
       row.daySegments.push(seg);
       row.totalMinutes += seg.endMinute - seg.startMinute;
     }
 
-    // The detail row (time range, edit/delete buttons) belongs on the start day.
-    const startRow = getRow(toLocalDateStr(startAt));
+    // Entry detail belongs on its start day
+    const startKey = toLocalDateStr(startAt);
+    const startRow = ensure(startKey, new Date(startAt.getFullYear(), startAt.getMonth(), startAt.getDate()));
     startRow.entries.push({ entry, segments, totalMinutes: totalEntryMinutes });
   }
 
-  return Array.from(dayMap.values()).sort((a, b) => b.dayKey.localeCompare(a.dayKey));
+  // Build the 30-day skeleton ending today (newest first)
+  const today = new Date();
+  const result: DayRow[] = [];
+  for (let i = 0; i < DAYS; i++) {
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+    const key = toLocalDateStr(date);
+    const existing = map.get(key);
+    result.push(existing ?? { dayKey: key, date, entries: [], daySegments: [], totalMinutes: 0 });
+  }
+  return result;
 }
 
+// ── Bar primitive: 24h, hourly grid, gradient segments ──────────────────
+function TimelineBar({ segments }: { segments: SleepSegment[] }) {
+  return (
+    <div className="relative h-3 rounded-full bg-[var(--treker-border)] overflow-hidden">
+      {segments.map((s, i) => (
+        <div
+          key={i}
+          className="absolute top-0 h-full rounded-full"
+          style={{
+            left:  `${(s.startMinute / 1440) * 100}%`,
+            width: `${((s.endMinute - s.startMinute) / 1440) * 100}%`,
+            background: "linear-gradient(90deg, #f97316, #ec4899)",
+            minWidth: "2px",
+          }}
+        />
+      ))}
+      {/* Hour ticks every 2 hours — slightly bolder on the even ticks */}
+      {Array.from({ length: 23 }, (_, i) => i + 1).map((h) => (
+        <div
+          key={h}
+          className={cn(
+            "absolute top-0 h-full w-px",
+            h % 2 === 0 ? "bg-black/15 dark:bg-white/15" : "bg-black/5 dark:bg-white/5"
+          )}
+          style={{ left: `${(h / 24) * 100}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────
 export default function SleepPage() {
   const apiKey = "/api/sleep";
   const { data: rawEntries = [] } = useSWR<SleepEntry[]>(apiKey, fetcher);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<SleepEntry | null>(null);
+  const [modalDefaultDate, setModalDefaultDate] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [openDay, setOpenDay] = useState<DayRow | null>(null);
 
-  const dayRows = useMemo(() => buildDayRows(rawEntries), [rawEntries]);
+  const timeline = useMemo(() => buildTimeline(rawEntries), [rawEntries]);
 
-  // Average over last 7 entries
+  // Average over the last 7 entries
   const avgDuration = useMemo(() => {
     if (!rawEntries.length) return 0;
     const last7 = rawEntries.slice(0, 7);
@@ -95,10 +147,28 @@ export default function SleepPage() {
     setDeleteId(null);
   }
 
+  function openCreateForToday() {
+    setEditEntry(null);
+    setModalDefaultDate(null);
+    setModalOpen(true);
+  }
+  function openCreateForDate(dayKey: string) {
+    setEditEntry(null);
+    setModalDefaultDate(dayKey);
+    setModalOpen(true);
+    setOpenDay(null);
+  }
+  function openEdit(entry: SleepEntry) {
+    setEditEntry(entry);
+    setModalDefaultDate(null);
+    setModalOpen(true);
+    setOpenDay(null);
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      {/* Stats header */}
-      <div className="mb-6 flex items-center justify-between">
+      {/* Stats + add button */}
+      <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-xs text-[var(--treker-text-muted)] font-medium">Среднее (7 записей)</p>
           <p className="text-2xl font-bold text-[var(--treker-text)] tnum">
@@ -106,8 +176,8 @@ export default function SleepPage() {
           </p>
         </div>
         <Button
-          onClick={() => { setEditEntry(null); setModalOpen(true); }}
-          className="bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white gap-1.5"
+          onClick={openCreateForToday}
+          className="bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white border-2 border-[var(--treker-accent)] shadow-md gap-1.5 active:scale-[0.98]"
           size="sm"
         >
           <Plus size={16} />
@@ -115,76 +185,83 @@ export default function SleepPage() {
         </Button>
       </div>
 
-      {/* Day rows */}
-      <div className="space-y-4">
-        {dayRows.length === 0 && (
-          <p className="text-[var(--treker-text-muted)] text-sm text-center py-10">
-            Нет записей. Добавьте первую!
-          </p>
-        )}
-
-        {dayRows.map((row) => (
-          <div key={row.dayKey} className="bg-[var(--treker-card)] rounded-xl p-4 border border-[var(--treker-border)]">
-            {/* Day header */}
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-[var(--treker-text)]">
-                {new Date(row.dayKey + "T12:00:00").toLocaleDateString("ru-RU", {
-                  weekday: "short", day: "numeric", month: "short",
-                })}
+      {/* Timeline */}
+      <div className="bg-[var(--treker-card)] rounded-xl border border-[var(--treker-border)] shadow-[var(--treker-shadow-card)] p-3 md:p-4">
+        {/* Top hour scale, shared by every row */}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-14 shrink-0" />
+          <div className="flex-1 relative h-3">
+            {HOUR_TICKS.map((h) => (
+              <span
+                key={h}
+                className="absolute -translate-x-1/2 text-[8px] md:text-[9px] text-[var(--treker-text-muted)] tnum"
+                style={{ left: `${(h / 24) * 100}%`, top: 0 }}
+              >
+                {h === 24 ? 0 : h}
               </span>
-              <span className="text-xs text-[var(--treker-text-muted)] tnum">
-                {row.totalMinutes > 0 ? formatSleepDuration(row.totalMinutes) : ""}
-              </span>
-            </div>
-
-            {/* 24h sleep bar */}
-            <SleepBar
-              segments={row.daySegments}
-              className="mb-3"
-            />
-
-            {/* Individual entries */}
-            {row.entries.map(({ entry, totalMinutes }) => {
-              const startAt = new Date(entry.startAt);
-              const endAt   = new Date(entry.endAt);
-              const crossesMidnight = toLocalDateStr(startAt) !== toLocalDateStr(endAt);
-              return (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between text-xs text-[var(--treker-text-muted)] mt-1.5"
-                >
-                  <span className="tnum">
-                    {toLocalTimeStr(startAt)} — {toLocalTimeStr(endAt)}
-                    {crossesMidnight && <span className="ml-1 opacity-60">(+1д)</span>}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <span className="tnum text-[var(--treker-text)]">{formatSleepDuration(totalMinutes)}</span>
-                    <button
-                      onClick={() => { setEditEntry(entry); setModalOpen(true); }}
-                      className="hover:text-[var(--treker-text)] transition-colors"
-                    >
-                      Изм.
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(entry.id)}
-                      className="hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            ))}
           </div>
-        ))}
+          <div className="w-12 shrink-0 text-right text-[10px] text-[var(--treker-text-muted)]">всего</div>
+        </div>
+
+        {/* 30 rows, newest at top, packed tight (2 px gap) */}
+        <div className="space-y-[2px]">
+          {timeline.map((row) => {
+            const hasEntries = row.entries.length > 0;
+            const dayLabel = row.date.toLocaleDateString("ru-RU", { weekday: "short", day: "numeric" });
+            return (
+              <button
+                key={row.dayKey}
+                type="button"
+                onClick={() => setOpenDay(row)}
+                className="w-full flex items-center gap-2 group rounded-md hover:bg-[var(--treker-border)]/30 transition-colors px-1 py-px text-left"
+              >
+                <span className={cn(
+                  "w-14 shrink-0 text-[11px] truncate",
+                  hasEntries || row.totalMinutes > 0
+                    ? "text-[var(--treker-text)]"
+                    : "text-[var(--treker-text-muted)]"
+                )}>
+                  {dayLabel}
+                </span>
+                <div className="flex-1">
+                  <TimelineBar segments={row.daySegments} />
+                </div>
+                <span className={cn(
+                  "w-12 shrink-0 text-right text-[11px] tnum",
+                  row.totalMinutes > 0 ? "text-[var(--treker-text)] font-medium" : "text-[var(--treker-text-muted)]"
+                )}>
+                  {row.totalMinutes > 0 ? formatSleepDuration(row.totalMinutes) : "—"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      <p className="text-[10px] text-[var(--treker-text-muted)] text-center mt-3">
+        Тап по строке — записи и редактирование. Скролл: последние {DAYS} дней.
+      </p>
+
+      {/* Day detail dialog */}
+      {openDay && (
+        <DayDetailDialog
+          row={openDay}
+          onClose={() => setOpenDay(null)}
+          onEditEntry={openEdit}
+          onAddForDate={() => openCreateForDate(openDay.dayKey)}
+          onDelete={(id) => setDeleteId(id)}
+        />
+      )}
 
       {/* Add / Edit modal */}
       <SleepModal
+        key={editEntry?.id ?? modalDefaultDate ?? "new"}
         open={modalOpen}
         entry={editEntry}
-        onClose={() => { setModalOpen(false); setEditEntry(null); }}
-        onSave={() => { globalMutate(apiKey); setModalOpen(false); setEditEntry(null); }}
+        defaultDate={modalDefaultDate}
+        onClose={() => { setModalOpen(false); setEditEntry(null); setModalDefaultDate(null); }}
+        onSave={() => { globalMutate(apiKey); setModalOpen(false); setEditEntry(null); setModalDefaultDate(null); }}
       />
 
       {/* Delete confirmation */}
@@ -212,26 +289,129 @@ export default function SleepPage() {
   );
 }
 
-// ── Sleep Modal ────────────────────────────────────────────────────────────────
+// ── Day detail dialog: shows the day's bar + list of entries + add button ─
+
+function DayDetailDialog({
+  row, onClose, onEditEntry, onAddForDate, onDelete,
+}: {
+  row: DayRow;
+  onClose: () => void;
+  onEditEntry: (entry: SleepEntry) => void;
+  onAddForDate: () => void;
+  onDelete: (id: string) => void;
+}) {
+  const longLabel = row.date.toLocaleDateString("ru-RU", {
+    weekday: "long", day: "numeric", month: "long",
+  });
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="capitalize">{longLabel}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3 mt-2">
+          {/* Big bar for the day */}
+          <div>
+            <TimelineBar segments={row.daySegments} />
+            <div className="flex justify-between mt-1">
+              {[0, 6, 12, 18, 24].map((h) => (
+                <span key={h} className="text-[9px] text-[var(--treker-text-muted)] tnum">
+                  {h === 24 ? 0 : h}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs text-[var(--treker-text-muted)]">Сон за сутки</p>
+            <p className="text-xl font-bold tnum text-[var(--treker-text)]">
+              {row.totalMinutes > 0 ? formatSleepDuration(row.totalMinutes) : "0ч 0м"}
+            </p>
+          </div>
+
+          {/* Entries that started this day */}
+          {row.entries.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-[var(--treker-text-muted)]">Записи начатые в этот день</p>
+              {row.entries.map(({ entry, totalMinutes }) => {
+                const startAt = new Date(entry.startAt);
+                const endAt   = new Date(entry.endAt);
+                const crossesMidnight = toLocalDateStr(startAt) !== toLocalDateStr(endAt);
+                return (
+                  <div
+                    key={entry.id}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--treker-border)]"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm tnum">
+                        {toLocalTimeStr(startAt)} — {toLocalTimeStr(endAt)}
+                        {crossesMidnight && <span className="text-[10px] text-[var(--treker-text-muted)] ml-1">+1д</span>}
+                      </p>
+                      <p className="text-[11px] text-[var(--treker-text-muted)] tnum">
+                        {formatSleepDuration(totalMinutes)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => onEditEntry(entry)}
+                      className="p-1.5 rounded-md text-[var(--treker-text-muted)] hover:text-[var(--treker-text)] hover:bg-[var(--treker-border)]/40 transition-colors"
+                      aria-label="Изменить"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => onDelete(entry.id)}
+                      className="p-1.5 rounded-md text-[var(--treker-text-muted)] hover:text-[var(--treker-expense)] hover:bg-[var(--treker-expense)]/10 transition-colors"
+                      aria-label="Удалить"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <Button
+            onClick={onAddForDate}
+            className="w-full bg-[var(--treker-accent)] text-white border-2 border-[var(--treker-accent)] shadow-md hover:bg-[var(--treker-accent)]/90 active:scale-[0.98] gap-1.5"
+          >
+            <Plus size={15} />
+            Добавить запись на этот день
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Sleep create/edit modal (mostly the same as before, accepts defaultDate) ─
 
 function SleepModal({
-  open,
-  entry,
-  onClose,
-  onSave,
+  open, entry, defaultDate, onClose, onSave,
 }: {
   open: boolean;
   entry: SleepEntry | null;
+  defaultDate: string | null;
   onClose: () => void;
   onSave: () => void;
 }) {
   const today = new Date();
   const todayStr = toLocalDateStr(today);
+  const baseDate = entry
+    ? toLocalDateStr(new Date(entry.startAt))
+    : (defaultDate ?? todayStr);
 
-  const initStartDate = entry ? toLocalDateStr(new Date(entry.startAt)) : todayStr;
+  const initStartDate = entry ? toLocalDateStr(new Date(entry.startAt)) : baseDate;
   const initStartTime = entry ? toLocalTimeStr(new Date(entry.startAt)) : "23:00";
-  const initEndDate   = entry ? toLocalDateStr(new Date(entry.endAt))   : todayStr;
-  const initEndTime   = entry ? toLocalTimeStr(new Date(entry.endAt))   : "07:00";
+  // For a new entry, end the *next* day
+  const defaultEndDate = (() => {
+    const [yy, mm, dd] = baseDate.split("-").map(Number);
+    const d = new Date(yy, mm - 1, dd + 1);
+    return toLocalDateStr(d);
+  })();
+  const initEndDate   = entry ? toLocalDateStr(new Date(entry.endAt)) : defaultEndDate;
+  const initEndTime   = entry ? toLocalTimeStr(new Date(entry.endAt)) : "07:00";
 
   const [startDate, setStartDate] = useState(initStartDate);
   const [startTime, setStartTime] = useState(initStartTime);
@@ -239,24 +419,10 @@ function SleepModal({
   const [endTime,   setEndTime]   = useState(initEndTime);
   const [saving,    setSaving]    = useState(false);
 
-  // Sync state when entry changes (modal re-open)
-  const [prevEntry, setPrevEntry] = useState<SleepEntry | null>(entry);
-  if (entry !== prevEntry) {
-    setPrevEntry(entry);
-    setStartDate(entry ? toLocalDateStr(new Date(entry.startAt)) : todayStr);
-    setStartTime(entry ? toLocalTimeStr(new Date(entry.startAt)) : "23:00");
-    setEndDate(entry   ? toLocalDateStr(new Date(entry.endAt))   : todayStr);
-    setEndTime(entry   ? toLocalTimeStr(new Date(entry.endAt))   : "07:00");
-  }
-
   const startAt = new Date(`${startDate}T${startTime}:00`);
   const endAt   = new Date(`${endDate}T${endTime}:00`);
   const valid   = !isNaN(startAt.getTime()) && !isNaN(endAt.getTime()) && endAt > startAt;
   const durationMin = valid ? sleepDurationMinutes({ startAt, endAt }) : 0;
-
-  const previewSegments = valid
-    ? splitSleepEntry({ startAt, endAt }).filter(s => s.dayKey === toLocalDateStr(startAt))
-    : [];
 
   async function handleSave() {
     if (!valid) return;
@@ -290,45 +456,22 @@ function SleepModal({
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          {/* Start */}
           <div className="space-y-1.5">
             <Label>Начало</Label>
             <div className="flex gap-2">
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="flex-1"
-              />
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-28"
-              />
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex-1" />
+              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-28" />
             </div>
           </div>
 
-          {/* End */}
           <div className="space-y-1.5">
             <Label>Конец</Label>
             <div className="flex gap-2">
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="flex-1"
-              />
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-28"
-              />
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="flex-1" />
+              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-28" />
             </div>
           </div>
 
-          {/* Duration preview */}
           {valid ? (
             <p className="text-sm text-[var(--treker-text-muted)] text-center">
               Длительность:{" "}
@@ -337,18 +480,13 @@ function SleepModal({
               </span>
             </p>
           ) : startDate && startTime && endDate && endTime ? (
-            <p className="text-xs text-red-500 text-center">Конец должен быть позже начала</p>
+            <p className="text-xs text-[var(--treker-expense)] text-center">Конец должен быть позже начала</p>
           ) : null}
-
-          {/* Preview bar */}
-          {previewSegments.length > 0 && (
-            <SleepBar segments={previewSegments} className="mt-1" />
-          )}
 
           <Button
             onClick={handleSave}
             disabled={saving || !valid}
-            className="w-full bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white"
+            className="w-full h-10 bg-[var(--treker-accent)] text-white border-2 border-[var(--treker-accent)] shadow-md hover:bg-[var(--treker-accent)]/90 active:scale-[0.98] disabled:opacity-60"
           >
             {saving ? "Сохраняем…" : entry ? "Сохранить" : "Добавить"}
           </Button>
