@@ -154,8 +154,8 @@ export default function HabitsPage() {
         </button>
       </div>
 
-      {/* Grid of habit cards: 2 cols mobile, 3 cols desktop */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {/* Grid of habit cards: 1 col on mobile, 3 cols on desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {habits.map((h) => {
           // Per-month stats
           let doneCount = 0, totalCount = 0;
@@ -251,7 +251,7 @@ export default function HabitsPage() {
 
         {/* Empty state if no habits */}
         {habits.length === 0 && (
-          <div className="col-span-2 md:col-span-3 bg-[var(--treker-card)] rounded-xl border border-[var(--treker-border)] py-12 text-center">
+          <div className="md:col-span-3 bg-[var(--treker-card)] rounded-xl border border-[var(--treker-border)] py-12 text-center">
             <p className="text-sm text-[var(--treker-text-muted)] mb-3">Пока нет привычек.</p>
             <Button
               onClick={() => { setEditHabit(null); setModalOpen(true); }}

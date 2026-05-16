@@ -1,8 +1,9 @@
 ﻿"use client";
 
 import { useMemo } from "react";
-import useSWR from "swr";
+import useSWR, { mutate as globalMutate } from "swr";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { SleepBar } from "@/components/sleep-bar";
 import { DynamicIcon } from "@/components/dynamic-icon";
 import { splitSleepEntry, sleepDurationMinutes, formatSleepDuration } from "@/lib/sleep";
@@ -50,6 +51,16 @@ export default function DashboardPage() {
   );
   const doneCount = habits.filter(h => todayLogSet.has(h.id)).length;
 
+  async function toggleHabitToday(habitId: string, currentlyDone: boolean) {
+    await fetch("/api/habits/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ habitId, day: todayKey, checked: !currentlyDone }),
+    });
+    // Invalidate every cached month-log key (the dashboard and the habits page share keys)
+    globalMutate((key) => typeof key === "string" && key.startsWith("/api/habits/log"));
+  }
+
   // ── Sleep ────────────────────────────────────────────────────────────────
   const lastSleep = sleepArr[0] ?? null;
   const lastSleepSegments = useMemo(() => {
@@ -96,31 +107,46 @@ export default function DashboardPage() {
       {/* Bento grid */}
       <div className="grid grid-cols-2 gap-3 md:gap-4">
 
-        {/* Habits widget — full width */}
-        <Link
-          href="/habits"
-          className="col-span-2 bg-[var(--treker-card)] rounded-2xl p-4 border border-[var(--treker-border)] hover:border-[var(--treker-accent)]/50 transition-colors block"
-        >
+        {/* Habits widget — full width.
+            Each circle toggles today's completion in place.
+            "Все →" link in the corner is the only way to navigate to /habits
+            (so taps on the circles don't accidentally navigate). */}
+        <div className="col-span-2 bg-[var(--treker-card)] rounded-2xl p-4 border border-[var(--treker-border)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-[var(--treker-text-muted)] font-medium">Привычки сегодня</p>
-            <span className="text-xs font-bold text-[var(--treker-accent)] tnum">
-              {doneCount}/{habits.length}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-[var(--treker-accent)] tnum">
+                {doneCount}/{habits.length}
+              </span>
+              <Link
+                href="/habits"
+                className="text-xs text-[var(--treker-text-muted)] hover:text-[var(--treker-accent)] flex items-center gap-0.5 transition-colors"
+                aria-label="Открыть все привычки"
+              >
+                Все
+                <ChevronRight size={12} />
+              </Link>
+            </div>
           </div>
           <div className="flex gap-2 flex-wrap">
             {habits.slice(0, 8).map((h) => {
               const done = todayLogSet.has(h.id);
               return (
-                <div
+                <button
                   key={h.id}
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
+                  type="button"
+                  onClick={() => toggleHabitToday(h.id, done)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-90 hover:scale-105"
                   style={done
                     ? { background: `linear-gradient(135deg, ${h.color}, ${h.color}cc)` }
                     : { background: "var(--treker-border)" }
                   }
+                  title={`${h.name}${done ? " (выполнено)" : ""}`}
+                  aria-label={`${h.name}: ${done ? "снять отметку" : "отметить"}`}
+                  aria-pressed={done}
                 >
                   <DynamicIcon name={h.icon} size={16} style={{ color: done ? "#fff" : h.color }} />
-                </div>
+                </button>
               );
             })}
           </div>
@@ -128,11 +154,11 @@ export default function DashboardPage() {
             <div className="mt-2 h-1.5 rounded-full bg-[var(--treker-border)] overflow-hidden">
               <div
                 className="h-full rounded-full bg-[var(--treker-accent)] transition-all"
-                style={{ width: `${habits.length > 0 ? (doneCount / habits.length) * 100 : 0}%` }}
+                style={{ width: `${(doneCount / habits.length) * 100}%` }}
               />
             </div>
           )}
-        </Link>
+        </div>
 
         {/* Sleep widget */}
         <Link
