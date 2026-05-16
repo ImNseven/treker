@@ -87,7 +87,7 @@ function buildTimeline(entries: SleepEntry[]): DayRow[] {
 }
 
 // ── Bar primitive: 24h, hourly grid, gradient segments ──────────────────
-function TimelineBar({ segments, height = "h-5 md:h-4" }: { segments: SleepSegment[]; height?: string }) {
+function TimelineBar({ segments, height = "h-5 md:h-8" }: { segments: SleepSegment[]; height?: string }) {
   return (
     <div className={cn("relative rounded-full bg-[var(--treker-border)] overflow-hidden", height)}>
       {segments.map((s, i) => (
@@ -166,7 +166,7 @@ export default function SleepPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
+    <div className="p-4 md:p-6 max-w-2xl md:max-w-3xl mx-auto">
       {/* Stats + add button */}
       <div className="mb-5 flex items-center justify-between">
         <div>
@@ -188,25 +188,25 @@ export default function SleepPage() {
       {/* Timeline */}
       <div className="bg-[var(--treker-card)] rounded-xl border border-[var(--treker-border)] shadow-[var(--treker-shadow-card)] p-3 md:p-4">
         {/* Top hour scale, shared by every row */}
-        <div className="flex items-center gap-2 md:gap-2.5 mb-2">
-          <div className="w-16 md:w-14 shrink-0" />
-          <div className="flex-1 relative h-3">
+        <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-3">
+          <div className="w-16 md:w-24 shrink-0" />
+          <div className="flex-1 relative h-3 md:h-4">
             {HOUR_TICKS.map((h) => (
               <span
                 key={h}
-                className="absolute -translate-x-1/2 text-[10px] md:text-[9px] text-[var(--treker-text-muted)] tnum"
+                className="absolute -translate-x-1/2 text-[10px] md:text-xs text-[var(--treker-text-muted)] tnum"
                 style={{ left: `${(h / 24) * 100}%`, top: 0 }}
               >
                 {h === 24 ? 0 : h}
               </span>
             ))}
           </div>
-          <div className="w-14 md:w-12 shrink-0 text-right text-[11px] md:text-[10px] text-[var(--treker-text-muted)]">всего</div>
+          <div className="w-14 md:w-20 shrink-0 text-right text-[11px] md:text-xs text-[var(--treker-text-muted)]">всего</div>
         </div>
 
-        {/* 30 rows, newest at top. 4 px gap on phone for comfortable taps,
-            2 px gap on desktop so the timeline reads as one continuous strip. */}
-        <div className="space-y-1 md:space-y-[2px]">
+        {/* 30 rows, newest at top. Bigger gap on desktop so the taller bars
+            still breathe; tight on phone where the bars are smaller. */}
+        <div className="space-y-1 md:space-y-1.5">
           {timeline.map((row) => {
             const hasEntries = row.entries.length > 0;
             const dayLabel = row.date.toLocaleDateString("ru-RU", { weekday: "short", day: "numeric" });
@@ -215,10 +215,10 @@ export default function SleepPage() {
                 key={row.dayKey}
                 type="button"
                 onClick={() => setOpenDay(row)}
-                className="w-full flex items-center gap-2 md:gap-2.5 rounded-md hover:bg-[var(--treker-border)]/30 active:bg-[var(--treker-border)]/50 transition-colors px-1 py-1 md:py-px text-left"
+                className="w-full flex items-center gap-2 md:gap-4 rounded-md hover:bg-[var(--treker-border)]/30 active:bg-[var(--treker-border)]/50 transition-colors px-1 py-1 md:py-1.5 text-left"
               >
                 <span className={cn(
-                  "w-16 md:w-14 shrink-0 text-[13px] md:text-[11px] truncate",
+                  "w-16 md:w-24 shrink-0 text-[13px] md:text-base truncate",
                   hasEntries || row.totalMinutes > 0
                     ? "text-[var(--treker-text)]"
                     : "text-[var(--treker-text-muted)]"
@@ -229,7 +229,7 @@ export default function SleepPage() {
                   <TimelineBar segments={row.daySegments} />
                 </div>
                 <span className={cn(
-                  "w-14 md:w-12 shrink-0 text-right text-[13px] md:text-[11px] tnum",
+                  "w-14 md:w-20 shrink-0 text-right text-[13px] md:text-base tnum",
                   row.totalMinutes > 0 ? "text-[var(--treker-text)] font-medium" : "text-[var(--treker-text-muted)]"
                 )}>
                   {row.totalMinutes > 0 ? formatSleepDuration(row.totalMinutes) : "—"}
