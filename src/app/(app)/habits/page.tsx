@@ -47,11 +47,7 @@ export default function HabitsPage() {
   const [editHabit,  setEditHabit]  = useState<Habit | null>(null);
   const [menuHabit,  setMenuHabit]  = useState<Habit | null>(null);
 
-  // Fast lookups
-  const todayLogSet = useMemo(
-    () => new Set(logs.filter(l => toDateKey(new Date(l.day)) === todayKey).map(l => l.habitId)),
-    [logs, todayKey]
-  );
+  // Fast lookup: "habitId-YYYY-MM-DD" → true if logged
   const logSet = useMemo(
     () => new Set(logs.map(l => `${l.habitId}-${toDateKey(new Date(l.day))}`)),
     [logs]
@@ -97,39 +93,16 @@ export default function HabitsPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
-      {/* Today strip — quick toggle */}
-      <div className="mb-6">
-        <p className="text-xs text-[var(--treker-text-muted)] font-medium mb-3">Сегодня</p>
-        <div className="flex gap-3 flex-wrap">
-          {habits.map((h) => {
-            const done = todayLogSet.has(h.id);
-            return (
-              <div key={h.id} className="flex flex-col items-center gap-1">
-                <button
-                  onClick={() => toggleDay(h.id, todayKey, done)}
-                  className={cn(
-                    "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95",
-                    done
-                      ? "text-white shadow-md"
-                      : "bg-[var(--treker-card)] border-2 border-[var(--treker-border)] text-[var(--treker-text-muted)] hover:border-[var(--treker-accent)]"
-                  )}
-                  style={done ? { background: `linear-gradient(135deg, ${h.color}, ${h.color}cc)` } : {}}
-                  title={h.name}
-                >
-                  <DynamicIcon name={h.icon} size={24} />
-                </button>
-                <span className="text-[10px] text-[var(--treker-text-muted)] w-14 text-center truncate">{h.name}</span>
-              </div>
-            );
-          })}
-          <button
-            onClick={() => { setEditHabit(null); setModalOpen(true); }}
-            className="w-14 h-14 rounded-full flex items-center justify-center border-2 border-dashed border-[var(--treker-border)] text-[var(--treker-text-muted)] hover:border-[var(--treker-accent)] hover:text-[var(--treker-accent)] transition-colors"
-            aria-label="Добавить привычку"
-          >
-            <Plus size={20} />
-          </button>
-        </div>
+      {/* Add habit button (the "today" quick-toggle row lives on the dashboard) */}
+      <div className="flex justify-end mb-4">
+        <Button
+          onClick={() => { setEditHabit(null); setModalOpen(true); }}
+          className="bg-[var(--treker-accent)] hover:bg-[var(--treker-accent)]/90 text-white border-2 border-[var(--treker-accent)] shadow-md gap-1.5 active:scale-[0.98]"
+          size="sm"
+        >
+          <Plus size={16} />
+          Добавить привычку
+        </Button>
       </div>
 
       {/* Month switcher */}
@@ -296,8 +269,12 @@ export default function HabitsPage() {
         </Dialog>
       )}
 
-      {/* Add/Edit habit modal */}
+      {/* Add/Edit habit modal.
+          key={...} forces React to remount the modal when switching between
+          "create" and "edit habit N" / "edit habit M" so useState picks up
+          the new habits values as initial state — no derived-state tricks. */}
       <HabitModal
+        key={editHabit?.id ?? "new"}
         open={modalOpen}
         habit={editHabit}
         onClose={() => { setModalOpen(false); setEditHabit(null); }}
@@ -315,19 +292,12 @@ function HabitModal({
   onClose: () => void;
   onSave: () => void;
 }) {
+  // Modal is remounted (via key on the parent) whenever `habit` switches,
+  // so useState's initial value is always fresh — no derived-state sync needed.
   const [name, setName]   = useState(habit?.name ?? "");
   const [icon, setIcon]   = useState(habit?.icon ?? "CheckCircle");
   const [color, setColor] = useState(habit?.color ?? "#f97316");
   const [saving, setSaving] = useState(false);
-
-  // Sync state when the habit prop changes (open for edit)
-  const [prev, setPrev] = useState<Habit | null>(habit);
-  if (habit !== prev) {
-    setPrev(habit);
-    setName(habit?.name ?? "");
-    setIcon(habit?.icon ?? "CheckCircle");
-    setColor(habit?.color ?? "#f97316");
-  }
 
   async function handleSave() {
     if (!name.trim()) return;
