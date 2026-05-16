@@ -5,6 +5,7 @@ const PUBLIC_PATHS = [
   "/api/auth/login",
   "/api/auth/logout",
   "/api/health",
+  "/mockup",
 ];
 
 // Cookie name must match session.ts
